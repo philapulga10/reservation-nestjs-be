@@ -10,13 +10,13 @@ export class HotelsController {
     @Query('location') location?: string,
     @Query('search') search?: string,
     @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
+    @Query('limit') limit: string = '10'
   ) {
     return this.hotelsService.getHotels(
       location,
       search,
       parseInt(page),
-      parseInt(limit),
+      parseInt(limit)
     );
   }
 
@@ -24,4 +24,4 @@ export class HotelsController {
   async getHotelById(@Param('id') id: string) {
     return this.hotelsService.getHotelById(id);
   }
-} 
+}

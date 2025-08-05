@@ -8,12 +8,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    private prisma: PrismaService,
+    private prisma: PrismaService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'your_secret_key_here',
+      secretOrKey:
+        configService.get<string>('JWT_SECRET') || 'your_secret_key_here',
     });
   }
 
@@ -21,11 +22,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
     });
-    
+
     return {
       userId: user?.id,
       email: user?.email,
       role: user?.role,
     };
   }
-} 
+}

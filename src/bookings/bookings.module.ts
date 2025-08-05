@@ -11,4 +11,4 @@ import { AdminModule } from '../admin/admin.module';
   providers: [BookingsService],
   exports: [BookingsService],
 })
-export class BookingsModule {} 
+export class BookingsModule {}

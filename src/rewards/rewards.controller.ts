@@ -1,5 +1,13 @@
-import { Controller, Post, Get, Body, Query, UseGuards, Request } from '@nestjs/common';
-import { RewardsService, EarnPointDto } from './rewards.service';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import { RewardsService, CreateRewardDto } from './rewards.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('ireward')
@@ -8,20 +16,20 @@ export class RewardsController {
   constructor(private readonly rewardsService: RewardsService) {}
 
   @Post('earn')
-  async earnPoint(@Body() earnPointDto: EarnPointDto) {
-    return this.rewardsService.earnPoint(earnPointDto);
+  async earnPoint(@Body() createRewardDto: CreateRewardDto) {
+    return this.rewardsService.addPoints(createRewardDto);
   }
 
   @Get('history')
   async getPointHistory(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
-    @Request() req,
+    @Request() req
   ) {
-    return this.rewardsService.getPointHistory(
+    return this.rewardsService.getUserRewards(
       req.user.userId,
       parseInt(page),
-      parseInt(limit),
+      parseInt(limit)
     );
   }
-} 
+}

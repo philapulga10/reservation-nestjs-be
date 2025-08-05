@@ -31,11 +31,7 @@ export class RewardsService {
     return rewardHistory;
   }
 
-  async getUserRewards(
-    userId: string,
-    page: number = 1,
-    limit: number = 10,
-  ) {
+  async getUserRewards(userId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
 
     const [rewards, total] = await Promise.all([
@@ -57,11 +53,7 @@ export class RewardsService {
     };
   }
 
-  async getAllRewards(
-    page: number = 1,
-    limit: number = 10,
-    search?: string,
-  ) {
+  async getAllRewards(page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};
 
@@ -98,4 +90,4 @@ export class RewardsService {
       totalPages: Math.ceil(total / limit),
     };
   }
-} 
+}

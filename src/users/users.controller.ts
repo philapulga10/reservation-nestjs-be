@@ -7,12 +7,13 @@ import {
   Request,
   HttpCode,
   HttpStatus,
-} from "@nestjs/common";
-import { Throttle } from "@nestjs/throttler";
+} from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 
-import { UsersService } from "./users.service";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { AdminLogService } from "../admin/admin-log.service";
+import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminLogService } from '../admin/admin-log.service';
+import { Role } from '@prisma/client';
 
 export class RegisterDto {
   email: string;
@@ -24,14 +25,14 @@ export class LoginDto {
   password: string;
 }
 
-@Controller("users")
+@Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly adminLogService: AdminLogService
   ) {}
 
-  @Post("register")
+  @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 5, ttl: 60 } })
   async register(@Body() registerDto: RegisterDto) {
@@ -41,16 +42,16 @@ export class UsersController {
     );
 
     return {
-      message: "User registered successfully",
+      message: 'User registered successfully',
       user: {
-        _id: user._id,
+        id: user.id,
         email: user.email,
         createdAt: user.createdAt,
       },
     };
   }
 
-  @Post("login")
+  @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60 } })
   async login(@Body() loginDto: LoginDto) {
@@ -59,19 +60,19 @@ export class UsersController {
       loginDto.password
     );
 
-    if (user.role === "admin") {
+    if (user.role === Role.ADMIN) {
       await this.adminLogService.logAction({
-        adminId: user._id.toString(),
-        action: "LOGIN_SUCCESS",
+        adminId: user.id.toString(),
+        action: 'LOGIN_SUCCESS',
         metadata: { email: loginDto.email },
       });
     }
 
     return {
-      message: "Login successful",
+      message: 'Login successful',
       token,
       user: {
-        _id: user._id,
+        id: user.id,
         email: user.email,
         createdAt: user.createdAt,
         role: user.role,
@@ -79,12 +80,12 @@ export class UsersController {
     };
   }
 
-  @Get("me")
+  @Get('me')
   @UseGuards(JwtAuthGuard)
   async getCurrentUser(@Request() req) {
     const user = await this.usersService.findById(req.user.userId);
     if (!user) {
-      return { error: "User not found" };
+      return { error: 'User not found' };
     }
 
     const userDoc = user as any;

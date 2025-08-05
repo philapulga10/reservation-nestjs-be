@@ -21,7 +21,7 @@ let AdminLogController = class AdminLogController {
         this.adminLogService = adminLogService;
     }
     async getLogs(page = '1', limit = '20', search) {
-        return this.adminLogService.getLogs(parseInt(page), parseInt(limit), search);
+        return this.adminLogService.getAdminLogs(parseInt(page), parseInt(limit), search);
     }
 };
 exports.AdminLogController = AdminLogController;

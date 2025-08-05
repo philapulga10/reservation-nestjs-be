@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
@@ -16,7 +20,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private auditLogService: AuditLogService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
 
   async registerUser(email: string, password: string): Promise<User> {
@@ -34,8 +38,8 @@ export class UsersService {
 
     // Save user
     const user = await this.prisma.user.create({
-      data: { 
-        email, 
+      data: {
+        email,
         password: hashedPassword,
         role: Role.USER,
       },
@@ -72,7 +76,8 @@ export class UsersService {
     }
 
     // Create JWT
-    const secret = this.configService.get<string>('JWT_SECRET') || 'your_secret_key_here';
+    const secret =
+      this.configService.get<string>('JWT_SECRET') || 'your_secret_key_here';
     const token = jwt.sign(
       {
         userId: user.id,
@@ -105,4 +110,4 @@ export class UsersService {
       where: { id },
     });
   }
-} 
+}

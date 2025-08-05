@@ -16,14 +16,12 @@ let DatabaseConfig = class DatabaseConfig {
     constructor(configService) {
         this.configService = configService;
     }
-    createMongooseOptions() {
-        const mongoUrl = this.configService.get('MONGO_URL');
-        if (!mongoUrl) {
-            throw new Error('MONGO_URL is not defined in environment variables');
+    getDatabaseUrl() {
+        const databaseUrl = this.configService.get('DATABASE_URL');
+        if (!databaseUrl) {
+            throw new Error('DATABASE_URL is not defined in environment variables');
         }
-        return {
-            uri: mongoUrl,
-        };
+        return databaseUrl;
     }
 };
 exports.DatabaseConfig = DatabaseConfig;

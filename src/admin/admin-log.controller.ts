@@ -11,12 +11,12 @@ export class AdminLogController {
   async getLogs(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
-    @Query('search') search?: string,
+    @Query('search') search?: string
   ) {
-    return this.adminLogService.getLogs(
+    return this.adminLogService.getAdminLogs(
       parseInt(page),
       parseInt(limit),
-      search,
+      search
     );
   }
-} 
+}

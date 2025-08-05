@@ -11,12 +11,12 @@ export class AuditLogController {
   async getLogs(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
-    @Query('search') search?: string,
+    @Query('search') search?: string
   ) {
-    return this.auditLogService.getLogs(
+    return this.auditLogService.getAuditLogs(
       parseInt(page),
       parseInt(limit),
-      search,
+      search
     );
   }
-} 
+}

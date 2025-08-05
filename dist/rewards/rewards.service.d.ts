@@ -1,24 +1,43 @@
-import { Model } from 'mongoose';
-import { RewardHistory, RewardHistoryDocument } from './schemas/reward-history.schema';
-import { UserDocument } from '../users/schemas/user.schema';
-export interface EarnPointDto {
+import { PrismaService } from '../prisma/prisma.service';
+import { RewardHistory } from '@prisma/client';
+export interface CreateRewardDto {
     userId: string;
-    amount: number;
+    points: number;
     reason: string;
 }
 export declare class RewardsService {
-    private rewardHistoryModel;
-    private userModel;
-    constructor(rewardHistoryModel: Model<RewardHistoryDocument>, userModel: Model<UserDocument>);
-    earnPoint(data: EarnPointDto): Promise<{
-        message: string;
-        totalPoints: number;
+    private prisma;
+    constructor(prisma: PrismaService);
+    addPoints(data: CreateRewardDto): Promise<RewardHistory>;
+    getUserRewards(userId: string, page?: number, limit?: number): Promise<{
+        rewards: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            points: number;
+            userId: string;
+            date: Date;
+            reason: string;
+        }[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
     }>;
-    getPointHistory(userId: string, page?: number, limit?: number): Promise<{
-        history: (import("mongoose").Document<unknown, {}, RewardHistoryDocument, {}, {}> & RewardHistory & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-            _id: unknown;
-        }> & {
-            __v: number;
+    getAllRewards(page?: number, limit?: number, search?: string): Promise<{
+        rewards: ({
+            user: {
+                id: string;
+                email: string;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            points: number;
+            userId: string;
+            date: Date;
+            reason: string;
         })[];
         total: number;
         page: number;

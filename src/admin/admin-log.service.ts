@@ -22,18 +22,12 @@ export class AdminLogService {
     });
   }
 
-  async getAdminLogs(
-    page: number = 1,
-    limit: number = 10,
-    search?: string,
-  ) {
+  async getAdminLogs(page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};
 
     if (search) {
-      where.OR = [
-        { action: { contains: search, mode: 'insensitive' } },
-      ];
+      where.OR = [{ action: { contains: search, mode: 'insensitive' } }];
     }
 
     const [logs, total] = await Promise.all([
@@ -62,4 +56,4 @@ export class AdminLogService {
       totalPages: Math.ceil(total / limit),
     };
   }
-} 
+}

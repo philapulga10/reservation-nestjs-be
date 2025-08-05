@@ -23,7 +23,7 @@ export interface UpdateBookingDto {
 export class BookingsService {
   constructor(
     private prisma: PrismaService,
-    private auditLogService: AuditLogService,
+    private auditLogService: AuditLogService
   ) {}
 
   async createBooking(data: CreateBookingDto): Promise<Booking> {
@@ -47,7 +47,7 @@ export class BookingsService {
     email: string,
     page: number = 1,
     limit: number = 10,
-    filter: Record<string, any> = {},
+    filter: Record<string, any> = {}
   ) {
     const skip = (page - 1) * limit;
     const where = { userEmail: email, ...filter };
@@ -75,7 +75,7 @@ export class BookingsService {
     page: number = 1,
     limit: number = 10,
     search?: string,
-    filter: Record<string, any> = {},
+    filter: Record<string, any> = {}
   ) {
     const skip = (page - 1) * limit;
     let where: any = { ...filter };
@@ -115,7 +115,7 @@ export class BookingsService {
   async updateBooking(
     id: string,
     data: UpdateBookingDto,
-    userEmail: string,
+    userEmail: string
   ): Promise<Booking | null> {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
@@ -210,4 +210,4 @@ export class BookingsService {
       active,
     };
   }
-} 
+}

@@ -20,11 +20,11 @@ let RewardsController = class RewardsController {
     constructor(rewardsService) {
         this.rewardsService = rewardsService;
     }
-    async earnPoint(earnPointDto) {
-        return this.rewardsService.earnPoint(earnPointDto);
+    async earnPoint(createRewardDto) {
+        return this.rewardsService.addPoints(createRewardDto);
     }
     async getPointHistory(page = '1', limit = '10', req) {
-        return this.rewardsService.getPointHistory(req.user.userId, parseInt(page), parseInt(limit));
+        return this.rewardsService.getUserRewards(req.user.userId, parseInt(page), parseInt(limit));
     }
 };
 exports.RewardsController = RewardsController;

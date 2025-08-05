@@ -8,44 +8,40 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingsService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const booking_schema_1 = require("./schemas/booking.schema");
+const prisma_service_1 = require("../prisma/prisma.service");
 const audit_service_1 = require("../audit/audit.service");
 let BookingsService = class BookingsService {
-    constructor(bookingModel, auditLogService) {
-        this.bookingModel = bookingModel;
+    constructor(prisma, auditLogService) {
+        this.prisma = prisma;
         this.auditLogService = auditLogService;
     }
     async createBooking(data) {
-        const booking = new this.bookingModel(data);
-        await booking.save();
+        const booking = await this.prisma.booking.create({
+            data,
+        });
         await this.auditLogService.logAction({
             userEmail: data.userEmail,
             action: 'create',
             collectionName: 'bookings',
-            objectId: booking._id.toString(),
-            after: booking.toObject(),
+            objectId: booking.id,
+            after: booking,
         });
         return booking;
     }
     async getBookingsForUser(email, page = 1, limit = 10, filter = {}) {
         const skip = (page - 1) * limit;
-        const query = { userEmail: email, ...filter };
+        const where = { userEmail: email, ...filter };
         const [bookings, total] = await Promise.all([
-            this.bookingModel
-                .find(query)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.bookingModel.countDocuments(query).exec(),
+            this.prisma.booking.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.booking.count({ where }),
         ]);
         return {
             bookings,
@@ -57,24 +53,21 @@ let BookingsService = class BookingsService {
     }
     async getAllBookings(page = 1, limit = 10, search, filter = {}) {
         const skip = (page - 1) * limit;
-        let query = { ...filter };
+        let where = { ...filter };
         if (search) {
-            query = {
-                ...query,
-                $or: [
-                    { userEmail: { $regex: search, $options: 'i' } },
-                    { hotelName: { $regex: search, $options: 'i' } },
-                ],
-            };
+            where.OR = [
+                { userEmail: { contains: search, mode: 'insensitive' } },
+                { hotelName: { contains: search, mode: 'insensitive' } },
+            ];
         }
         const [bookings, total] = await Promise.all([
-            this.bookingModel
-                .find(query)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.bookingModel.countDocuments(query).exec(),
+            this.prisma.booking.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.booking.count({ where }),
         ]);
         return {
             bookings,
@@ -85,76 +78,81 @@ let BookingsService = class BookingsService {
         };
     }
     async getBookingById(id) {
-        return this.bookingModel.findById(id).exec();
+        return this.prisma.booking.findUnique({
+            where: { id },
+        });
     }
     async updateBooking(id, data, userEmail) {
-        const booking = await this.bookingModel.findById(id);
+        const booking = await this.prisma.booking.findUnique({
+            where: { id },
+        });
         if (!booking) {
             throw new common_1.NotFoundException('Booking not found');
         }
-        const before = booking.toObject();
-        const updatedBooking = await this.bookingModel
-            .findByIdAndUpdate(id, data, { new: true })
-            .exec();
-        if (updatedBooking) {
-            await this.auditLogService.logAction({
-                userEmail,
-                action: 'update',
-                collectionName: 'bookings',
-                objectId: id,
-                before,
-                after: updatedBooking.toObject(),
-            });
-        }
+        const before = booking;
+        const updatedBooking = await this.prisma.booking.update({
+            where: { id },
+            data,
+        });
+        await this.auditLogService.logAction({
+            userEmail,
+            action: 'update',
+            collectionName: 'bookings',
+            objectId: id,
+            before,
+            after: updatedBooking,
+        });
         return updatedBooking;
     }
     async cancelBooking(id, userEmail) {
-        const booking = await this.bookingModel.findById(id);
+        const booking = await this.prisma.booking.findUnique({
+            where: { id },
+        });
         if (!booking) {
             throw new common_1.NotFoundException('Booking not found');
         }
-        const before = booking.toObject();
-        const cancelledBooking = await this.bookingModel
-            .findByIdAndUpdate(id, { isCancelled: true }, { new: true })
-            .exec();
-        if (cancelledBooking) {
-            await this.auditLogService.logAction({
-                userEmail,
-                action: 'cancel',
-                collectionName: 'bookings',
-                objectId: id,
-                before,
-                after: cancelledBooking.toObject(),
-            });
-        }
+        const before = booking;
+        const cancelledBooking = await this.prisma.booking.update({
+            where: { id },
+            data: { isCancelled: true },
+        });
+        await this.auditLogService.logAction({
+            userEmail,
+            action: 'cancel',
+            collectionName: 'bookings',
+            objectId: id,
+            before,
+            after: cancelledBooking,
+        });
         return cancelledBooking;
     }
     async toggleStatus(id, userEmail) {
-        const booking = await this.bookingModel.findById(id);
+        const booking = await this.prisma.booking.findUnique({
+            where: { id },
+        });
         if (!booking) {
             throw new common_1.NotFoundException('Booking not found');
         }
-        const before = booking.toObject();
-        const updatedBooking = await this.bookingModel
-            .findByIdAndUpdate(id, { isCancelled: !booking.isCancelled }, { new: true })
-            .exec();
-        if (updatedBooking) {
-            await this.auditLogService.logAction({
-                userEmail,
-                action: 'toggle_status',
-                collectionName: 'bookings',
-                objectId: id,
-                before,
-                after: updatedBooking.toObject(),
-            });
-        }
+        const before = booking;
+        const updatedBooking = await this.prisma.booking.update({
+            where: { id },
+            data: { isCancelled: !booking.isCancelled },
+        });
+        await this.auditLogService.logAction({
+            userEmail,
+            action: 'toggle_status',
+            collectionName: 'bookings',
+            objectId: id,
+            before,
+            after: updatedBooking,
+        });
         return updatedBooking;
     }
     async getBookingStats() {
         const [total, cancelled, active] = await Promise.all([
-            this.bookingModel.countDocuments().exec(),
-            this.bookingModel.countDocuments({ isCancelled: true }).exec(),
-            this.bookingModel.countDocuments({ isCancelled: false }).exec(),
+            this.prisma.booking.count(),
+            this.prisma.booking.count({ where: { isCancelled: true } }),
+            this.prisma.booking.count({ where: { isCancelled: false } }),
         ]);
         return {
             total,
@@ -166,8 +164,7 @@ let BookingsService = class BookingsService {
 exports.BookingsService = BookingsService;
 exports.BookingsService = BookingsService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model,
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         audit_service_1.AuditLogService])
 ], BookingsService);
 //# sourceMappingURL=bookings.service.js.map

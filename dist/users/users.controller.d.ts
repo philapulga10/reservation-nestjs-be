@@ -1,5 +1,5 @@
-import { UsersService } from "./users.service";
-import { AdminLogService } from "../admin/admin-log.service";
+import { UsersService } from './users.service';
+import { AdminLogService } from '../admin/admin-log.service';
 export declare class RegisterDto {
     email: string;
     password: string;
@@ -15,7 +15,7 @@ export declare class UsersController {
     register(registerDto: RegisterDto): Promise<{
         message: string;
         user: {
-            _id: any;
+            id: string;
             email: string;
             createdAt: Date;
         };
@@ -24,10 +24,10 @@ export declare class UsersController {
         message: string;
         token: string;
         user: {
-            _id: any;
+            id: string;
             email: string;
             createdAt: Date;
-            role: "user" | "admin";
+            role: import(".prisma/client").$Enums.Role;
         };
     }>;
     getCurrentUser(req: any): Promise<any>;

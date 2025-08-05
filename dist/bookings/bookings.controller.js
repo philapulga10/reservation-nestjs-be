@@ -25,10 +25,10 @@ let BookingsController = class BookingsController {
     async createBooking(createBookingDto) {
         return this.bookingsService.createBooking(createBookingDto);
     }
-    async getBookings(req, page = "1", limit = "6", isCancelled) {
+    async getBookings(req, page = '1', limit = '6', isCancelled) {
         const filter = {};
         if (isCancelled !== undefined) {
-            filter.isCancelled = isCancelled === "true";
+            filter.isCancelled = isCancelled === 'true';
         }
         return this.bookingsService.getBookingsForUser(req.user.email, parseInt(page), parseInt(limit), filter);
     }
@@ -38,31 +38,31 @@ let BookingsController = class BookingsController {
     async cancelBooking(id, req) {
         return this.bookingsService.cancelBooking(id, req.user.email);
     }
-    async getAllBookingsForAdmin(req, page = "1", limit = "10", hotelName, isCancelled, search) {
+    async getAllBookingsForAdmin(req, page = '1', limit = '10', hotelName, isCancelled, search) {
         const filter = {};
         if (hotelName)
             filter.hotelName = hotelName;
         if (isCancelled !== undefined) {
-            filter.isCancelled = isCancelled === "true";
+            filter.isCancelled = isCancelled === 'true';
         }
         const bookings = await this.bookingsService.getAllBookings(parseInt(page), parseInt(limit), search, filter);
         if (hotelName || isCancelled !== undefined) {
             await this.adminLogService.logAction({
                 adminId: req.user.userId,
-                action: "FILTER_BOOKING",
+                action: 'FILTER_BOOKING',
                 metadata: { hotelName, isCancelled },
             });
         }
         if (search) {
             await this.adminLogService.logAction({
                 adminId: req.user.userId,
-                action: "SEARCH_BOOKING",
+                action: 'SEARCH_BOOKING',
                 metadata: { search },
             });
         }
         await this.adminLogService.logAction({
             adminId: req.user.userId,
-            action: "ADMIN_VIEW_BOOKINGS",
+            action: 'ADMIN_VIEW_BOOKINGS',
             metadata: { page, limit, hotelName, isCancelled, search },
         });
         return bookings;
@@ -70,11 +70,11 @@ let BookingsController = class BookingsController {
     async getBookingDetailForAdmin(id, req) {
         const booking = await this.bookingsService.getBookingById(id);
         if (!booking) {
-            return { error: "Booking not found" };
+            return { error: 'Booking not found' };
         }
         await this.adminLogService.logAction({
             adminId: req.user.userId,
-            action: "VIEW_BOOKING_DETAIL",
+            action: 'VIEW_BOOKING_DETAIL',
             metadata: { bookingId: id },
         });
         return booking;
@@ -83,7 +83,7 @@ let BookingsController = class BookingsController {
         const updatedBooking = await this.bookingsService.toggleStatus(id, req.user.email);
         await this.adminLogService.logAction({
             adminId: req.user.userId,
-            action: "TOGGLE_BOOKING_STATUS",
+            action: 'TOGGLE_BOOKING_STATUS',
             metadata: { bookingId: id, newStatus: updatedBooking.isCancelled },
         });
         return { success: true, isCancelled: updatedBooking.isCancelled };
@@ -104,16 +104,16 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Query)("page")),
-    __param(2, (0, common_1.Query)("limit")),
-    __param(3, (0, common_1.Query)("isCancelled")),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('isCancelled')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "getBookings", null);
 __decorate([
-    (0, common_1.Put)(":id"),
-    __param(0, (0, common_1.Param)("id")),
+    (0, common_1.Put)(':id'),
+    __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -121,49 +121,49 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "updateBooking", null);
 __decorate([
-    (0, common_1.Delete)(":id"),
-    __param(0, (0, common_1.Param)("id")),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "cancelBooking", null);
 __decorate([
-    (0, common_1.Get)("admin/all"),
+    (0, common_1.Get)('admin/all'),
     __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Query)("page")),
-    __param(2, (0, common_1.Query)("limit")),
-    __param(3, (0, common_1.Query)("hotelName")),
-    __param(4, (0, common_1.Query)("isCancelled")),
-    __param(5, (0, common_1.Query)("search")),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('hotelName')),
+    __param(4, (0, common_1.Query)('isCancelled')),
+    __param(5, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "getAllBookingsForAdmin", null);
 __decorate([
-    (0, common_1.Get)("admin/:id"),
-    __param(0, (0, common_1.Param)("id")),
+    (0, common_1.Get)('admin/:id'),
+    __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "getBookingDetailForAdmin", null);
 __decorate([
-    (0, common_1.Put)("admin/:id/toggle"),
-    __param(0, (0, common_1.Param)("id")),
+    (0, common_1.Put)('admin/:id/toggle'),
+    __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "toggleBookingStatus", null);
 __decorate([
-    (0, common_1.Get)("admin/stats"),
+    (0, common_1.Get)('admin/stats'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "getBookingStats", null);
 exports.BookingsController = BookingsController = __decorate([
-    (0, common_1.Controller)("bookings"),
+    (0, common_1.Controller)('bookings'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [bookings_service_1.BookingsService,
         admin_log_service_1.AdminLogService])

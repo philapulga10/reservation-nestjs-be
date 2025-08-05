@@ -1,6 +1,6 @@
-import { Model } from 'mongoose';
-import { Booking, BookingDocument } from './schemas/booking.schema';
+import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogService } from '../audit/audit.service';
+import { Booking } from '@prisma/client';
 export interface CreateBookingDto {
     userId: string;
     userEmail: string;
@@ -16,27 +16,43 @@ export interface UpdateBookingDto {
     totalPrice?: number;
 }
 export declare class BookingsService {
-    private bookingModel;
+    private prisma;
     private auditLogService;
-    constructor(bookingModel: Model<BookingDocument>, auditLogService: AuditLogService);
+    constructor(prisma: PrismaService, auditLogService: AuditLogService);
     createBooking(data: CreateBookingDto): Promise<Booking>;
     getBookingsForUser(email: string, page?: number, limit?: number, filter?: Record<string, any>): Promise<{
-        bookings: (import("mongoose").Document<unknown, {}, BookingDocument, {}, {}> & Booking & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-            _id: unknown;
-        }> & {
-            __v: number;
-        })[];
+        bookings: {
+            id: string;
+            userEmail: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            hotelId: string;
+            hotelName: string;
+            numDays: number;
+            numRooms: number;
+            totalPrice: number;
+            isCancelled: boolean;
+        }[];
         total: number;
         page: number;
         limit: number;
         totalPages: number;
     }>;
     getAllBookings(page?: number, limit?: number, search?: string, filter?: Record<string, any>): Promise<{
-        bookings: (import("mongoose").Document<unknown, {}, BookingDocument, {}, {}> & Booking & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-            _id: unknown;
-        }> & {
-            __v: number;
-        })[];
+        bookings: {
+            id: string;
+            userEmail: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            hotelId: string;
+            hotelName: string;
+            numDays: number;
+            numRooms: number;
+            totalPrice: number;
+            isCancelled: boolean;
+        }[];
         total: number;
         page: number;
         limit: number;

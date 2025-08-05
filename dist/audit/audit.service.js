@@ -8,36 +8,44 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuditLogService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const audit_log_schema_1 = require("./schemas/audit-log.schema");
+const prisma_service_1 = require("../prisma/prisma.service");
 let AuditLogService = class AuditLogService {
-    constructor(auditLogModel) {
-        this.auditLogModel = auditLogModel;
+    constructor(prisma) {
+        this.prisma = prisma;
     }
     async logAction(data) {
-        const auditLog = new this.auditLogModel(data);
-        return auditLog.save();
+        return this.prisma.auditLog.create({
+            data: {
+                userEmail: data.userEmail,
+                action: data.action,
+                collectionName: data.collectionName,
+                objectId: data.objectId,
+                before: data.before,
+                after: data.after,
+            },
+        });
     }
-    async getLogs(page = 1, limit = 10, search) {
+    async getAuditLogs(page = 1, limit = 10, search) {
         const skip = (page - 1) * limit;
-        let query = this.auditLogModel.find();
+        const where = {};
         if (search) {
-            query = query.or([
-                { userEmail: { $regex: search, $options: 'i' } },
-                { action: { $regex: search, $options: 'i' } },
-                { collectionName: { $regex: search, $options: 'i' } },
-            ]);
+            where.OR = [
+                { userEmail: { contains: search, mode: 'insensitive' } },
+                { action: { contains: search, mode: 'insensitive' } },
+                { collectionName: { contains: search, mode: 'insensitive' } },
+            ];
         }
         const [logs, total] = await Promise.all([
-            query.sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-            query.countDocuments().exec(),
+            this.prisma.auditLog.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.auditLog.count({ where }),
         ]);
         return {
             logs,
@@ -51,7 +59,6 @@ let AuditLogService = class AuditLogService {
 exports.AuditLogService = AuditLogService;
 exports.AuditLogService = AuditLogService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(audit_log_schema_1.AuditLog.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], AuditLogService);
 //# sourceMappingURL=audit.service.js.map

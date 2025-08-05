@@ -4,18 +4,16 @@ import { Hotel } from '@prisma/client';
 
 @Injectable()
 export class HotelsService {
-  constructor(
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getHotels(
     location?: string,
     search?: string,
     page: number = 1,
-    limit: number = 10,
+    limit: number = 10
   ) {
     const skip = (page - 1) * limit;
-    
+
     const where: any = {};
     if (location && location !== 'all') {
       where.location = location;
@@ -48,4 +46,4 @@ export class HotelsService {
       where: { id },
     });
   }
-} 
+}

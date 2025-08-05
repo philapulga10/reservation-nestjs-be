@@ -8,38 +8,45 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminLogService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const admin_log_schema_1 = require("./schemas/admin-log.schema");
+const prisma_service_1 = require("../prisma/prisma.service");
 let AdminLogService = class AdminLogService {
-    constructor(adminLogModel) {
-        this.adminLogModel = adminLogModel;
+    constructor(prisma) {
+        this.prisma = prisma;
     }
     async logAction(data) {
-        const adminLog = new this.adminLogModel({
-            ...data,
-            adminId: data.adminId ? new mongoose_2.Types.ObjectId(data.adminId) : undefined,
+        return this.prisma.adminLog.create({
+            data: {
+                adminId: data.adminId,
+                action: data.action,
+                metadata: data.metadata || {},
+            },
         });
-        return adminLog.save();
     }
-    async getLogs(page = 1, limit = 10, search) {
+    async getAdminLogs(page = 1, limit = 10, search) {
         const skip = (page - 1) * limit;
-        let query = this.adminLogModel.find().populate('adminId', 'email');
+        const where = {};
         if (search) {
-            query = query.or([
-                { action: { $regex: search, $options: 'i' } },
-                { 'metadata.email': { $regex: search, $options: 'i' } },
-            ]);
+            where.OR = [{ action: { contains: search, mode: 'insensitive' } }];
         }
         const [logs, total] = await Promise.all([
-            query.sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-            query.countDocuments().exec(),
+            this.prisma.adminLog.findMany({
+                where,
+                include: {
+                    admin: {
+                        select: {
+                            id: true,
+                            email: true,
+                        },
+                    },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.adminLog.count({ where }),
         ]);
         return {
             logs,
@@ -53,7 +60,6 @@ let AdminLogService = class AdminLogService {
 exports.AdminLogService = AdminLogService;
 exports.AdminLogService = AdminLogService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(admin_log_schema_1.AdminLog.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], AdminLogService);
 //# sourceMappingURL=admin-log.service.js.map

@@ -8,29 +8,33 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HotelsService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const hotel_schema_1 = require("./schemas/hotel.schema");
+const prisma_service_1 = require("../prisma/prisma.service");
 let HotelsService = class HotelsService {
-    constructor(hotelModel) {
-        this.hotelModel = hotelModel;
+    constructor(prisma) {
+        this.prisma = prisma;
     }
     async getHotels(location, search, page = 1, limit = 10) {
-        const filter = {};
-        if (location && location !== 'all')
-            filter.location = location;
-        if (search)
-            filter.name = { $regex: search, $options: 'i' };
         const skip = (page - 1) * limit;
+        const where = {};
+        if (location && location !== 'all') {
+            where.location = location;
+        }
+        if (search) {
+            where.name = {
+                contains: search,
+                mode: 'insensitive',
+            };
+        }
         const [data, total] = await Promise.all([
-            this.hotelModel.find(filter).skip(skip).limit(limit).exec(),
-            this.hotelModel.countDocuments(filter).exec(),
+            this.prisma.hotel.findMany({
+                where,
+                skip,
+                take: limit,
+            }),
+            this.prisma.hotel.count({ where }),
         ]);
         return {
             data,
@@ -39,13 +43,14 @@ let HotelsService = class HotelsService {
         };
     }
     async getHotelById(id) {
-        return this.hotelModel.findById(id).exec();
+        return this.prisma.hotel.findUnique({
+            where: { id },
+        });
     }
 };
 exports.HotelsService = HotelsService;
 exports.HotelsService = HotelsService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(hotel_schema_1.Hotel.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], HotelsService);
 //# sourceMappingURL=hotels.service.js.map

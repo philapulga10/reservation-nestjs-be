@@ -28,11 +28,7 @@ export class AuditLogService {
     });
   }
 
-  async getAuditLogs(
-    page: number = 1,
-    limit: number = 10,
-    search?: string,
-  ) {
+  async getAuditLogs(page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};
 
@@ -62,4 +58,4 @@ export class AuditLogService {
       totalPages: Math.ceil(total / limit),
     };
   }
-} 
+}

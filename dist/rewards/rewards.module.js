@@ -8,22 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RewardsModule = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
 const rewards_controller_1 = require("./rewards.controller");
 const rewards_service_1 = require("./rewards.service");
-const reward_history_schema_1 = require("./schemas/reward-history.schema");
-const user_schema_1 = require("../users/schemas/user.schema");
+const prisma_module_1 = require("../prisma/prisma.module");
 let RewardsModule = class RewardsModule {
 };
 exports.RewardsModule = RewardsModule;
 exports.RewardsModule = RewardsModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            mongoose_1.MongooseModule.forFeature([
-                { name: reward_history_schema_1.RewardHistory.name, schema: reward_history_schema_1.RewardHistorySchema },
-                { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
-            ]),
-        ],
+        imports: [prisma_module_1.PrismaModule],
         controllers: [rewards_controller_1.RewardsController],
         providers: [rewards_service_1.RewardsService],
         exports: [rewards_service_1.RewardsService],

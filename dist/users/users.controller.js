@@ -18,6 +18,7 @@ const throttler_1 = require("@nestjs/throttler");
 const users_service_1 = require("./users.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const admin_log_service_1 = require("../admin/admin-log.service");
+const client_1 = require("@prisma/client");
 class RegisterDto {
 }
 exports.RegisterDto = RegisterDto;
@@ -32,9 +33,9 @@ let UsersController = class UsersController {
     async register(registerDto) {
         const user = await this.usersService.registerUser(registerDto.email, registerDto.password);
         return {
-            message: "User registered successfully",
+            message: 'User registered successfully',
             user: {
-                _id: user._id,
+                id: user.id,
                 email: user.email,
                 createdAt: user.createdAt,
             },
@@ -42,18 +43,18 @@ let UsersController = class UsersController {
     }
     async login(loginDto) {
         const { token, user } = await this.usersService.loginUser(loginDto.email, loginDto.password);
-        if (user.role === "admin") {
+        if (user.role === client_1.Role.ADMIN) {
             await this.adminLogService.logAction({
-                adminId: user._id.toString(),
-                action: "LOGIN_SUCCESS",
+                adminId: user.id.toString(),
+                action: 'LOGIN_SUCCESS',
                 metadata: { email: loginDto.email },
             });
         }
         return {
-            message: "Login successful",
+            message: 'Login successful',
             token,
             user: {
-                _id: user._id,
+                id: user.id,
                 email: user.email,
                 createdAt: user.createdAt,
                 role: user.role,
@@ -63,7 +64,7 @@ let UsersController = class UsersController {
     async getCurrentUser(req) {
         const user = await this.usersService.findById(req.user.userId);
         if (!user) {
-            return { error: "User not found" };
+            return { error: 'User not found' };
         }
         const userDoc = user;
         const { password, ...userWithoutPassword } = userDoc.toObject
@@ -74,7 +75,7 @@ let UsersController = class UsersController {
 };
 exports.UsersController = UsersController;
 __decorate([
-    (0, common_1.Post)("register"),
+    (0, common_1.Post)('register'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, throttler_1.Throttle)({ default: { limit: 5, ttl: 60 } }),
     __param(0, (0, common_1.Body)()),
@@ -83,7 +84,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "register", null);
 __decorate([
-    (0, common_1.Post)("login"),
+    (0, common_1.Post)('login'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, throttler_1.Throttle)({ default: { limit: 5, ttl: 60 } }),
     __param(0, (0, common_1.Body)()),
@@ -92,7 +93,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "login", null);
 __decorate([
-    (0, common_1.Get)("me"),
+    (0, common_1.Get)('me'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -100,7 +101,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getCurrentUser", null);
 exports.UsersController = UsersController = __decorate([
-    (0, common_1.Controller)("users"),
+    (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         admin_log_service_1.AdminLogService])
 ], UsersController);

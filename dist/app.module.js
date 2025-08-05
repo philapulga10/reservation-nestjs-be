@@ -9,7 +9,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const mongoose_1 = require("@nestjs/mongoose");
 const throttler_1 = require("@nestjs/throttler");
 const core_1 = require("@nestjs/core");
 const users_module_1 = require("./users/users.module");
@@ -19,8 +18,8 @@ const auth_module_1 = require("./auth/auth.module");
 const admin_module_1 = require("./admin/admin.module");
 const audit_module_1 = require("./audit/audit.module");
 const rewards_module_1 = require("./rewards/rewards.module");
+const prisma_module_1 = require("./prisma/prisma.module");
 const throttler_2 = require("@nestjs/throttler");
-const database_config_1 = require("./config/database.config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,9 +29,7 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
-            mongoose_1.MongooseModule.forRootAsync({
-                useClass: database_config_1.DatabaseConfig,
-            }),
+            prisma_module_1.PrismaModule,
             throttler_1.ThrottlerModule.forRoot([
                 {
                     ttl: 60000,
@@ -41,7 +38,7 @@ exports.AppModule = AppModule = __decorate([
                 {
                     ttl: 60000,
                     limit: 5,
-                    name: "auth",
+                    name: 'auth',
                 },
             ]),
             users_module_1.UsersModule,

@@ -21,7 +21,7 @@ let AuditLogController = class AuditLogController {
         this.auditLogService = auditLogService;
     }
     async getLogs(page = '1', limit = '20', search) {
-        return this.auditLogService.getLogs(parseInt(page), parseInt(limit), search);
+        return this.auditLogService.getAuditLogs(parseInt(page), parseInt(limit), search);
     }
 };
 exports.AuditLogController = AuditLogController;

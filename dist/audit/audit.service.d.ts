@@ -1,6 +1,6 @@
-import { Model } from 'mongoose';
-import { AuditLog, AuditLogDocument } from './schemas/audit-log.schema';
-export interface AuditLogData {
+import { PrismaService } from '../prisma/prisma.service';
+import { AuditLog } from '@prisma/client';
+export interface LogActionDto {
     userEmail?: string;
     action: string;
     collectionName: string;
@@ -9,15 +9,21 @@ export interface AuditLogData {
     after?: Record<string, any>;
 }
 export declare class AuditLogService {
-    private auditLogModel;
-    constructor(auditLogModel: Model<AuditLogDocument>);
-    logAction(data: AuditLogData): Promise<AuditLog>;
-    getLogs(page?: number, limit?: number, search?: string): Promise<{
-        logs: (import("mongoose").Document<unknown, {}, AuditLogDocument, {}, {}> & AuditLog & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-            _id: unknown;
-        }> & {
-            __v: number;
-        })[];
+    private prisma;
+    constructor(prisma: PrismaService);
+    logAction(data: LogActionDto): Promise<AuditLog>;
+    getAuditLogs(page?: number, limit?: number, search?: string): Promise<{
+        logs: {
+            id: string;
+            userEmail: string | null;
+            action: string;
+            collectionName: string;
+            objectId: string;
+            before: import("@prisma/client/runtime/library").JsonValue | null;
+            after: import("@prisma/client/runtime/library").JsonValue | null;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
         total: number;
         page: number;
         limit: number;

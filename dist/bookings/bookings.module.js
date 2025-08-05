@@ -8,10 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingsModule = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
 const bookings_controller_1 = require("./bookings.controller");
 const bookings_service_1 = require("./bookings.service");
-const booking_schema_1 = require("./schemas/booking.schema");
+const prisma_module_1 = require("../prisma/prisma.module");
 const audit_module_1 = require("../audit/audit.module");
 const admin_module_1 = require("../admin/admin.module");
 let BookingsModule = class BookingsModule {
@@ -19,11 +18,7 @@ let BookingsModule = class BookingsModule {
 exports.BookingsModule = BookingsModule;
 exports.BookingsModule = BookingsModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema }]),
-            audit_module_1.AuditModule,
-            admin_module_1.AdminModule,
-        ],
+        imports: [prisma_module_1.PrismaModule, audit_module_1.AuditModule, admin_module_1.AdminModule],
         controllers: [bookings_controller_1.BookingsController],
         providers: [bookings_service_1.BookingsService],
         exports: [bookings_service_1.BookingsService],
