@@ -3,14 +3,14 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
-import { UsersModule } from './users/users.module';
-import { HotelsModule } from './hotels/hotels.module';
-import { BookingsModule } from './bookings/bookings.module';
-import { AuthModule } from './auth/auth.module';
-import { AdminModule } from './admin/admin.module';
-import { AuditModule } from './audit/audit.module';
-import { RewardsModule } from './rewards/rewards.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { UsersModule } from '@/users/users.module';
+import { HotelsModule } from '@/hotels/hotels.module';
+import { BookingsModule } from '@/bookings/bookings.module';
+import { AuthModule } from '@/auth/auth.module';
+import { AdminModule } from '@/admin/admin.module';
+import { AuditModule } from '@/audit/audit.module';
+import { RewardsModule } from '@/rewards/rewards.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({

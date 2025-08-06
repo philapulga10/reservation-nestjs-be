@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 
-import { UsersService } from './users.service';
+import { UsersService } from '@/users/users.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { AdminLogService } from '@/admin/admin-log.service';
 import { Role } from '@prisma/client';

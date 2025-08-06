@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { RewardsController } from './rewards.controller';
-import { RewardsService } from './rewards.service';
+import { RewardsController } from '@/rewards/rewards.controller';
+import { RewardsService } from '@/rewards/rewards.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 
 @Module({

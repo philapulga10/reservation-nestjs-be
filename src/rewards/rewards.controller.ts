@@ -7,7 +7,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { RewardsService, CreateRewardDto } from './rewards.service';
+import { RewardsService, CreateRewardDto } from '@/rewards/rewards.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
 @Controller('ireward')
