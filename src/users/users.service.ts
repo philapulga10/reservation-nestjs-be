@@ -6,8 +6,8 @@ import {
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuditLogService } from '../audit/audit.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { AuditLogService } from '@/audit/audit.service';
 import { User, Role } from '@prisma/client';
 
 export interface LoginResult {

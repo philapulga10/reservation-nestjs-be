@@ -8,7 +8,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { RewardsService, CreateRewardDto } from './rewards.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
 @Controller('ireward')
 @UseGuards(JwtAuthGuard)

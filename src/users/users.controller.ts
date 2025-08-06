@@ -11,8 +11,8 @@ import {
 import { Throttle } from '@nestjs/throttler';
 
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { AdminLogService } from '../admin/admin-log.service';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { AdminLogService } from '@/admin/admin-log.service';
 import { Role } from '@prisma/client';
 
 export class RegisterDto {

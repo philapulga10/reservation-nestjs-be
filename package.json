@@ -20,7 +20,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:push": "prisma db push",
-    "migrate:data": "ts-node scripts/migrate-data.ts"
+    "migrate:data": "ts-node scripts/migrate-data.ts",
+    "refactor:imports": "node scripts/refactor-imports.js",
+    "refactor:all": "npm run refactor:imports && npm run build"
   },
   "keywords": [],
   "author": "",

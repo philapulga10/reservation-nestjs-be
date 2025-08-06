@@ -19,15 +19,23 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@/*": ["src/*"],
-      "@models/*": ["src/models/*"],
-      "@controllers/*": ["src/controllers/*"],
-      "@services/*": ["src/services/*"],
-      "@routes/*": ["src/routes/*"],
-      "@middlewares/*": ["src/middlewares/*"],
-      "@utils/*": ["src/utils/*"],
-      "@repositories/*": ["src/repositories/*"],
-      "@constants/*": ["src/constants/*"],
-      "@config/*": ["src/config/*"]
+      "@/auth/*": ["src/auth/*"],
+      "@/users/*": ["src/users/*"],
+      "@/hotels/*": ["src/hotels/*"],
+      "@/bookings/*": ["src/bookings/*"],
+      "@/admin/*": ["src/admin/*"],
+      "@/audit/*": ["src/audit/*"],
+      "@/rewards/*": ["src/rewards/*"],
+      "@/prisma/*": ["src/prisma/*"],
+      "@/guards/*": ["src/guards/*"],
+      "@/config/*": ["src/config/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/models/*": ["src/models/*"],
+      "@/services/*": ["src/services/*"],
+      "@/controllers/*": ["src/controllers/*"],
+      "@/middlewares/*": ["src/middlewares/*"],
+      "@/decorators/*": ["src/decorators/*"],
+      "@/constants/*": ["src/constants/*"]
     }
   }
 } 

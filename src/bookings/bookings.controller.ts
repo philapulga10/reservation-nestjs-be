@@ -17,8 +17,8 @@ import {
   CreateBookingDto,
   UpdateBookingDto,
 } from './bookings.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { AdminLogService } from '../admin/admin-log.service';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { AdminLogService } from '@/admin/admin-log.service';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
