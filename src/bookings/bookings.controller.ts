@@ -1,3 +1,7 @@
+import { AdminLogService } from '@/admin/admin-log.service';
+
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+
 import {
   Controller,
   Get,
@@ -15,10 +19,9 @@ import {
 import {
   BookingsService,
   CreateBookingDto,
+  CreateBookingData,
   UpdateBookingDto,
-} from './bookings.service';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { AdminLogService } from '@/admin/admin-log.service';
+} from '@/bookings/bookings.service';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
@@ -30,8 +33,16 @@ export class BookingsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createBooking(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingsService.createBooking(createBookingDto);
+  async createBooking(
+    @Body() createBookingDto: CreateBookingDto,
+    @Request() req
+  ) {
+    const bookingData: CreateBookingData = {
+      ...createBookingDto,
+      userId: req.user.userId,
+      userEmail: req.user.email,
+    };
+    return this.bookingsService.createBooking(bookingData);
   }
 
   @Get()

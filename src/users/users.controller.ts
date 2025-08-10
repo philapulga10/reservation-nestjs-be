@@ -1,3 +1,11 @@
+import { Throttle } from '@nestjs/throttler';
+
+import { Role } from '@prisma/client';
+
+import { AdminLogService } from '@/admin/admin-log.service';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { UsersService } from '@/users/users.service';
+
 import {
   Controller,
   Post,
@@ -8,12 +16,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
-
-import { UsersService } from '@/users/users.service';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { AdminLogService } from '@/admin/admin-log.service';
-import { Role } from '@prisma/client';
 
 export class RegisterDto {
   email: string;

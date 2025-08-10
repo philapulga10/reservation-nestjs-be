@@ -1,3 +1,7 @@
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+
+import { RewardsService, CreateRewardDto } from '@/rewards/rewards.service';
+
 import {
   Controller,
   Post,
@@ -7,8 +11,6 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { RewardsService, CreateRewardDto } from '@/rewards/rewards.service';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
 @Controller('ireward')
 @UseGuards(JwtAuthGuard)

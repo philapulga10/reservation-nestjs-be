@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
+
 import { HotelsService } from '@/hotels/hotels.service';
 
 @Controller('hotels')

@@ -1,16 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { AuditLogService } from '@/audit/audit.service';
 import { Booking } from '@prisma/client';
 
+import { AuditLogService } from '@/audit/audit.service';
+import { PrismaService } from '@/prisma/prisma.service';
+
 export interface CreateBookingDto {
-  userId: string;
-  userEmail: string;
   hotelId: string;
   hotelName: string;
   numDays: number;
   numRooms: number;
   totalPrice: number;
+}
+
+export interface CreateBookingData extends CreateBookingDto {
+  userId: string;
+  userEmail: string;
 }
 
 export interface UpdateBookingDto {
@@ -26,7 +30,7 @@ export class BookingsService {
     private auditLogService: AuditLogService
   ) {}
 
-  async createBooking(data: CreateBookingDto): Promise<Booking> {
+  async createBooking(data: CreateBookingData): Promise<Booking> {
     const booking = await this.prisma.booking.create({
       data,
     });

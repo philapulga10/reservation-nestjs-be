@@ -1,14 +1,17 @@
+import { ConfigService } from '@nestjs/config';
+import { User, Role } from '@prisma/client';
+
+import * as bcrypt from 'bcrypt';
+
+import { AuditLogService } from '@/audit/audit.service';
+import { AuthService } from '@/auth/auth.service';
+import { PrismaService } from '@/prisma/prisma.service';
+
 import {
   Injectable,
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '@/prisma/prisma.service';
-import { AuditLogService } from '@/audit/audit.service';
-import { User, Role } from '@prisma/client';
 
 export interface LoginResult {
   token: string;
@@ -20,7 +23,8 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private auditLogService: AuditLogService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private authService: AuthService
   ) {}
 
   async registerUser(email: string, password: string): Promise<User> {
@@ -75,18 +79,8 @@ export class UsersService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Create JWT
-    const secret =
-      this.configService.get<string>('JWT_SECRET') || 'your_secret_key_here';
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      secret,
-      { expiresIn: '7d' }
-    );
+    // Create JWT using AuthService
+    const token = await this.authService.generateToken(user);
 
     // Audit log
     await this.auditLogService.logAction({
