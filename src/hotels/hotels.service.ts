@@ -37,6 +37,9 @@ export class HotelsService {
 
     return {
       data,
+      total,
+      page,
+      limit,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
     };

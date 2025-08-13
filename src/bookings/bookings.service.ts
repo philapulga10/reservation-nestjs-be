@@ -67,11 +67,12 @@ export class BookingsService {
     ]);
 
     return {
-      bookings,
+      data: bookings,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      currentPage: page,
     };
   }
 
@@ -102,11 +103,12 @@ export class BookingsService {
     ]);
 
     return {
-      bookings,
+      data: bookings,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      currentPage: page,
     };
   }
 

@@ -46,11 +46,12 @@ export class RewardsService {
     ]);
 
     return {
-      rewards,
+      data: rewards,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      currentPage: page,
     };
   }
 
@@ -84,11 +85,12 @@ export class RewardsService {
     ]);
 
     return {
-      rewards,
+      data: rewards,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      currentPage: page,
     };
   }
 }

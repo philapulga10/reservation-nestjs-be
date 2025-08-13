@@ -8,6 +8,7 @@ import {
   Get,
   Body,
   Query,
+  Param,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -30,6 +31,19 @@ export class RewardsController {
   ) {
     return this.rewardsService.getUserRewards(
       req.user.userId,
+      parseInt(page),
+      parseInt(limit)
+    );
+  }
+
+  @Get('history/:userId')
+  async getPointHistoryByUserId(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Param('userId') userId: string
+  ) {
+    return this.rewardsService.getUserRewards(
+      userId,
       parseInt(page),
       parseInt(limit)
     );

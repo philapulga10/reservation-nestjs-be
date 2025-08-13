@@ -52,11 +52,12 @@ export class AuditLogService {
     ]);
 
     return {
-      logs,
+      data: logs,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      currentPage: page,
     };
   }
 }
