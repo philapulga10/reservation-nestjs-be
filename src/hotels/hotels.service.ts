@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Hotel } from '@prisma/client';
 
 import { PrismaService } from '@/prisma/prisma.service';
@@ -45,9 +45,15 @@ export class HotelsService {
     };
   }
 
-  async getHotelById(id: string): Promise<Hotel | null> {
-    return this.prisma.hotel.findUnique({
+  async getHotelById(id: string): Promise<Hotel> {
+    const hotel = await this.prisma.hotel.findUnique({
       where: { id },
     });
+
+    if (!hotel) {
+      throw new NotFoundException('Hotel not found');
+    }
+
+    return hotel;
   }
 }

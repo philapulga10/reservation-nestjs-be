@@ -11,6 +11,7 @@ import {
   Param,
   UseGuards,
   Request,
+  ForbiddenException,
 } from '@nestjs/common';
 
 @Controller('ireward')
@@ -19,7 +20,12 @@ export class RewardsController {
   constructor(private readonly rewardsService: RewardsService) {}
 
   @Post('earn')
-  async earnPoint(@Body() createRewardDto: CreateRewardDto) {
+  async earnPoint(@Body() createRewardDto: CreateRewardDto, @Request() req) {
+    // Check if user is admin
+    if (req.user.role !== 'ADMIN') {
+      throw new ForbiddenException('Admin privileges required');
+    }
+
     return this.rewardsService.addPoints(createRewardDto);
   }
 
@@ -40,8 +46,17 @@ export class RewardsController {
   async getPointHistoryByUserId(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
-    @Param('userId') userId: string
+    @Param('userId') userId: string,
+    @Request() req
   ) {
+    // Check if user is admin or viewing their own history
+    const isAdmin = req.user.role === 'ADMIN';
+    const isSelf = req.user.userId === userId;
+
+    if (!isAdmin && !isSelf) {
+      throw new ForbiddenException('Access denied');
+    }
+
     return this.rewardsService.getUserRewards(
       userId,
       parseInt(page),

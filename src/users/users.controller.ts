@@ -15,6 +15,7 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 
 export class RegisterDto {
@@ -98,13 +99,10 @@ export class UsersController {
   async getCurrentUser(@Request() req) {
     const user = await this.usersService.findById(req.user.userId);
     if (!user) {
-      return { error: 'User not found' };
+      throw new NotFoundException('User not found');
     }
 
-    const userDoc = user as any;
-    const { password, ...userWithoutPassword } = userDoc.toObject
-      ? userDoc.toObject()
-      : userDoc;
+    const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 }

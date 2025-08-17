@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Booking } from '@prisma/client';
 
 import { AuditLogService } from '@/audit/audit.service';
@@ -38,6 +42,24 @@ export class BookingsService {
   ) {}
 
   async createBooking(data: CreateBookingData): Promise<Booking> {
+    // Validate required fields
+    if (
+      !data.hotelId ||
+      !data.hotelName ||
+      !data.numDays ||
+      !data.numRooms ||
+      !data.totalPrice
+    ) {
+      throw new BadRequestException('All booking fields are required');
+    }
+
+    // Validate positive values
+    if (data.numDays <= 0 || data.numRooms <= 0 || data.totalPrice <= 0) {
+      throw new BadRequestException(
+        'Days, rooms, and price must be positive numbers'
+      );
+    }
+
     const booking = await this.prisma.booking.create({
       data,
     });

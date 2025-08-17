@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { RewardHistory } from '@prisma/client';
 
 import { PrismaService } from '@/prisma/prisma.service';
 
 export interface CreateRewardDto {
   userId: string;
-  points: number;
+  amount: number;
   reason: string;
 }
 
@@ -14,9 +18,32 @@ export class RewardsService {
   constructor(private prisma: PrismaService) {}
 
   async addPoints(data: CreateRewardDto): Promise<RewardHistory> {
+    // Validate required fields
+    if (!data.userId || !data.amount || !data.reason) {
+      throw new BadRequestException('userId, amount, and reason are required');
+    }
+
+    // Validate amount is positive
+    if (data.amount <= 0) {
+      throw new BadRequestException('Amount must be a positive number');
+    }
+
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({
+      where: { id: data.userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     // Create reward history record
     const rewardHistory = await this.prisma.rewardHistory.create({
-      data,
+      data: {
+        userId: data.userId,
+        points: data.amount,
+        reason: data.reason,
+      },
     });
 
     // Update user points
@@ -24,7 +51,7 @@ export class RewardsService {
       where: { id: data.userId },
       data: {
         points: {
-          increment: data.points,
+          increment: data.amount,
         },
       },
     });

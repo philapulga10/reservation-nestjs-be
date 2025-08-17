@@ -6,6 +6,7 @@ import {
   Request,
   Param,
   Patch,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { AdminLogService } from '@/admin/admin-log.service';
@@ -92,7 +93,7 @@ export class AdminBookingsController {
   async getBookingDetailForAdmin(@Request() req, @Param('id') id: string) {
     const booking = await this.bookingsService.getBookingById(id);
     if (!booking) {
-      return { error: 'Booking not found' };
+      throw new NotFoundException('Booking not found');
     }
 
     await this.adminLogService.logAction({
