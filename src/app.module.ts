@@ -23,11 +23,11 @@ import { UsersModule } from '@/users/users.module';
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
+        limit: 1000, // 1000 requests per minute (increased for development)
       },
       {
         ttl: 60000, // 1 minute
-        limit: 5, // 5 requests per minute for auth routes
+        limit: 20, // 20 requests per minute for auth routes (increased)
         name: 'auth',
       },
     ]),
@@ -40,10 +40,11 @@ import { UsersModule } from '@/users/users.module';
     RewardsModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // Temporarily disabled rate limiting for development
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard,
+    // },
   ],
 })
 export class AppModule {}

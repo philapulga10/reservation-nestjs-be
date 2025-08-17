@@ -36,7 +36,7 @@ export class UsersController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { limit: 5, ttl: 60 } })
+  // @Throttle({ default: { limit: 20, ttl: 60 } })
   async register(@Body() registerDto: RegisterDto) {
     const user = await this.usersService.registerUser(
       registerDto.email,
@@ -55,7 +55,7 @@ export class UsersController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 5, ttl: 60 } })
+  // @Throttle({ default: { limit: 20, ttl: 60 } })
   async login(@Body() loginDto: LoginDto) {
     const { token, user } = await this.usersService.loginUser(
       loginDto.email,
@@ -80,6 +80,17 @@ export class UsersController {
         role: user.role,
       },
     };
+  }
+
+  @Post('admin')
+  async createAdmin(@Body() body: { email: string; password: string }) {
+    return this.usersService.createAdminUser(body.email, body.password);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async getProfile(@Body() body: { email: string }) {
+    return this.usersService.findByEmail(body.email);
   }
 
   @Get('me')

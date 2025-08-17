@@ -23,6 +23,13 @@ export interface UpdateBookingDto {
   totalPrice?: number;
 }
 
+export interface BookingStats {
+  totalBookings: number;
+  activeBookings: number;
+  cancelledBookings: number;
+  totalRevenue: number;
+}
+
 @Injectable()
 export class BookingsService {
   constructor(
@@ -203,17 +210,24 @@ export class BookingsService {
     return updatedBooking;
   }
 
-  async getBookingStats() {
-    const [total, cancelled, active] = await Promise.all([
-      this.prisma.booking.count(),
-      this.prisma.booking.count({ where: { isCancelled: true } }),
-      this.prisma.booking.count({ where: { isCancelled: false } }),
-    ]);
+  async getBookingStats(): Promise<BookingStats> {
+    const [totalBookings, activeBookings, cancelledBookings, totalRevenueAgg] =
+      await Promise.all([
+        this.prisma.booking.count(),
+        this.prisma.booking.count({ where: { isCancelled: false } }),
+        this.prisma.booking.count({ where: { isCancelled: true } }),
+        this.prisma.booking.aggregate({
+          _sum: {
+            totalPrice: true,
+          },
+        }),
+      ]);
 
     return {
-      total,
-      cancelled,
-      active,
+      totalBookings,
+      activeBookings,
+      cancelledBookings,
+      totalRevenue: totalRevenueAgg._sum.totalPrice || 0,
     };
   }
 }

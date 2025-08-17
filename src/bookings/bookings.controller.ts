@@ -7,6 +7,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -50,11 +51,20 @@ export class BookingsController {
     @Request() req,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '6',
-    @Query('isCancelled') isCancelled?: string
+    @Query('isCancelled') isCancelled?: string,
+    @Query('status') status?: string
   ) {
     const filter: Record<string, any> = {};
+
+    // Handle both isCancelled and status parameters for compatibility
     if (isCancelled !== undefined) {
       filter.isCancelled = isCancelled === 'true';
+    } else if (status !== undefined) {
+      if (status === 'cancelled') {
+        filter.isCancelled = true;
+      } else if (status === 'active') {
+        filter.isCancelled = false;
+      }
     }
 
     return this.bookingsService.getBookingsForUser(
@@ -83,69 +93,19 @@ export class BookingsController {
     return this.bookingsService.cancelBooking(id, req.user.email);
   }
 
-  @Get('admin/all')
-  async getAllBookingsForAdmin(
-    @Request() req,
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('hotelName') hotelName?: string,
-    @Query('isCancelled') isCancelled?: string,
-    @Query('search') search?: string
-  ) {
-    const filter: Record<string, any> = {};
-    if (hotelName) filter.hotelName = hotelName;
-    if (isCancelled !== undefined) {
-      filter.isCancelled = isCancelled === 'true';
-    }
-
-    const bookings = await this.bookingsService.getAllBookings(
-      parseInt(page),
-      parseInt(limit),
-      search,
-      filter
+  @Patch(':id/cancel')
+  async cancelBookingPatch(@Param('id') id: string, @Request() req) {
+    const cancelledBooking = await this.bookingsService.cancelBooking(
+      id,
+      req.user.email
     );
-
-    // Log admin actions
-    if (hotelName || isCancelled !== undefined) {
-      await this.adminLogService.logAction({
-        adminId: req.user.userId,
-        action: 'FILTER_BOOKING',
-        metadata: { hotelName, isCancelled },
-      });
-    }
-
-    if (search) {
-      await this.adminLogService.logAction({
-        adminId: req.user.userId,
-        action: 'SEARCH_BOOKING',
-        metadata: { search },
-      });
-    }
-
-    await this.adminLogService.logAction({
-      adminId: req.user.userId,
-      action: 'ADMIN_VIEW_BOOKINGS',
-      metadata: { page, limit, hotelName, isCancelled, search },
-    });
-
-    return bookings;
+    return {
+      message: 'Booking cancelled successfully',
+      booking: cancelledBooking,
+    };
   }
 
-  @Get('admin/:id')
-  async getBookingDetailForAdmin(@Param('id') id: string, @Request() req) {
-    const booking = await this.bookingsService.getBookingById(id);
-    if (!booking) {
-      return { error: 'Booking not found' };
-    }
 
-    await this.adminLogService.logAction({
-      adminId: req.user.userId,
-      action: 'VIEW_BOOKING_DETAIL',
-      metadata: { bookingId: id },
-    });
-
-    return booking;
-  }
 
   @Put('admin/:id/toggle')
   async toggleBookingStatus(@Param('id') id: string, @Request() req) {
@@ -163,8 +123,66 @@ export class BookingsController {
     return { success: true, isCancelled: updatedBooking.isCancelled };
   }
 
+  @Patch('admin/:id/cancel')
+  async adminCancelBooking(@Param('id') id: string, @Request() req) {
+    const cancelledBooking = await this.bookingsService.cancelBooking(
+      id,
+      req.user.email
+    );
+
+    await this.adminLogService.logAction({
+      adminId: req.user.userId,
+      action: 'CANCEL_BOOKING',
+      metadata: { bookingId: id },
+    });
+
+    return { success: true, updated: cancelledBooking };
+  }
+
+  @Patch('admin/:id/toggle-status')
+  async adminToggleBookingStatus(@Param('id') id: string, @Request() req) {
+    const updatedBooking = await this.bookingsService.toggleStatus(
+      id,
+      req.user.email
+    );
+
+    await this.adminLogService.logAction({
+      adminId: req.user.userId,
+      action: 'TOGGLE_BOOKING_STATUS',
+      metadata: { bookingId: id, newStatus: updatedBooking.isCancelled },
+    });
+
+    return { success: true, isCancelled: updatedBooking.isCancelled };
+  }
+
+  @Patch('admin/:id')
+  async adminUpdateBooking(
+    @Param('id') id: string,
+    @Body() updateBookingDto: UpdateBookingDto,
+    @Request() req
+  ) {
+    const updatedBooking = await this.bookingsService.updateBooking(
+      id,
+      updateBookingDto,
+      req.user.email
+    );
+
+    await this.adminLogService.logAction({
+      adminId: req.user.userId,
+      action: 'UPDATE_BOOKING',
+      metadata: { bookingId: id },
+    });
+
+    return { success: true, booking: updatedBooking };
+  }
+
   @Get('admin/stats')
   async getBookingStats() {
+    return this.bookingsService.getBookingStats();
+  }
+
+  @Get('admin/bookings/stats')
+  async getAdminBookingStats() {
     return this.bookingsService.getBookingStats();
   }
 }

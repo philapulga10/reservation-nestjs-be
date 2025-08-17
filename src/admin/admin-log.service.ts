@@ -23,12 +23,41 @@ export class AdminLogService {
     });
   }
 
-  async getAdminLogs(page: number = 1, limit: number = 10, search?: string) {
+  async getAdminLogs(
+    page: number = 1, 
+    limit: number = 10, 
+    action?: string,
+    fromDate?: string,
+    toDate?: string,
+    adminEmail?: string
+  ) {
     const skip = (page - 1) * limit;
     const where: any = {};
 
-    if (search) {
-      where.OR = [{ action: { contains: search, mode: 'insensitive' } }];
+    // Filter by action
+    if (action) {
+      where.action = action;
+    }
+
+    // Filter by date range
+    if (fromDate || toDate) {
+      where.createdAt = {};
+      if (fromDate) {
+        where.createdAt.gte = new Date(fromDate);
+      }
+      if (toDate) {
+        where.createdAt.lte = new Date(toDate);
+      }
+    }
+
+    // Filter by admin email
+    if (adminEmail) {
+      where.admin = {
+        email: {
+          contains: adminEmail,
+          mode: 'insensitive'
+        }
+      };
     }
 
     const [logs, total] = await Promise.all([

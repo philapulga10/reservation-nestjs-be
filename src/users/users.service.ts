@@ -104,4 +104,42 @@ export class UsersService {
       where: { id },
     });
   }
+
+  async createAdminUser(email: string, password: string): Promise<User> {
+    // Check if user already exists
+    const existing = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Save admin user
+    const adminUser = await this.prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        role: Role.ADMIN,
+      },
+    });
+
+    // Audit log
+    await this.auditLogService.logAction({
+      userEmail: email,
+      action: 'create_admin',
+      collectionName: 'users',
+      objectId: adminUser.id,
+      after: {
+        email: adminUser.email,
+        role: adminUser.role,
+        createdAt: adminUser.createdAt,
+      },
+    });
+
+    return adminUser;
+  }
 }
