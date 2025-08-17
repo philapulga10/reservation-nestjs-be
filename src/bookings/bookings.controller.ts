@@ -75,7 +75,7 @@ export class BookingsController {
     );
   }
 
-  @Put(':id')
+  @Patch(':id')
   async updateBooking(
     @Param('id') id: string,
     @Body() updateBookingDto: UpdateBookingDto,
@@ -104,8 +104,6 @@ export class BookingsController {
       booking: cancelledBooking,
     };
   }
-
-
 
   @Put('admin/:id/toggle')
   async toggleBookingStatus(@Param('id') id: string, @Request() req) {
