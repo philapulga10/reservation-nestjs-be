@@ -1,7 +1,8 @@
 #!/usr/bin/env ts-node
 
-import { DatabaseService } from '../src/database/database.service';
-import * as bcrypt from 'bcrypt';
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from '../src/app.module';
+import { UsersService } from '../src/users/users.service';
 import * as readline from 'readline';
 
 const rl = readline.createInterface({
@@ -10,8 +11,17 @@ const rl = readline.createInterface({
 });
 
 async function createAdmin() {
+  let app;
+
   try {
     console.log('=== Create Admin User ===\n');
+
+    // Initialize NestJS app
+    console.log('Initializing application...');
+    app = await NestFactory.createApplicationContext(AppModule);
+
+    // Get UsersService
+    const usersService = app.get(UsersService);
 
     // Get email
     const email = await new Promise<string>(resolve => {
@@ -42,32 +52,39 @@ async function createAdmin() {
       process.exit(1);
     }
 
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Create admin user
-    const adminUser = {
-      email,
-      password: hashedPassword,
-      role: 'ADMIN' as const,
-    };
-
     console.log('\nCreating admin user...');
     console.log('Email:', email);
     console.log('Role: ADMIN');
 
-    // Note: This script would need to be updated to actually use DatabaseService
-    // For now, just show what would be created
-    console.log('\nAdmin user data:');
-    console.log(JSON.stringify(adminUser, null, 2));
+    // Create admin user using UsersService
+    const adminUser = await usersService.createAdminUser(email, password);
 
     console.log('\n✅ Admin user created successfully!');
+    console.log('User ID:', adminUser.id);
+    console.log('Email:', adminUser.email);
+    console.log('Role:', adminUser.role);
+    console.log('Created at:', adminUser.createdAt);
   } catch (error) {
     console.error('❌ Error creating admin user:', error);
+
+    if (error.message.includes('Email already registered')) {
+      console.error(
+        'This email is already registered. Please use a different email.'
+      );
+    } else if (error.message.includes('DATABASE_URL')) {
+      console.error(
+        'Database connection failed. Please check your .env file and database connection.'
+      );
+    } else {
+      console.error('Unexpected error:', error.message);
+    }
+
     process.exit(1);
   } finally {
     rl.close();
+    if (app) {
+      await app.close();
+    }
   }
 }
 
