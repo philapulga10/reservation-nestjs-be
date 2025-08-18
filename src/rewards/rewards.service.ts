@@ -1,10 +1,11 @@
+import { DatabaseService } from '@/database/database.service';
+import { RewardHistory } from '@/database/schema';
+
 import {
   Injectable,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { DatabaseService } from '@/database/database.service';
-import { RewardHistory } from '@/database/schema';
 
 export interface CreateRewardDto {
   userId: string;

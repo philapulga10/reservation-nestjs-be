@@ -1,3 +1,7 @@
+import { AdminLogService } from '@/admin/admin-log.service';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { BookingsService } from '@/bookings/bookings.service';
+
 import {
   Controller,
   Get,
@@ -8,10 +12,6 @@ import {
   Patch,
   NotFoundException,
 } from '@nestjs/common';
-
-import { AdminLogService } from '@/admin/admin-log.service';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { BookingsService } from '@/bookings/bookings.service';
 
 export interface BookingStats {
   totalBookings: number;

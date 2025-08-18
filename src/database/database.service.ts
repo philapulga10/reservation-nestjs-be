@@ -1,7 +1,8 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { db } from './connection';
-import * as schema from './schema';
 import { eq, ilike, or, and, gte, lte, desc, sql } from 'drizzle-orm';
+
+import { db } from '@/database/connection';
+import * as schema from '@/database/schema';
 
 // ✅ Custom types to handle decimal fields
 export interface CreateBookingData {

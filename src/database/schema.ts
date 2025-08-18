@@ -1,3 +1,5 @@
+import { relations } from 'drizzle-orm';
+
 import {
   pgTable,
   text,
@@ -8,7 +10,6 @@ import {
   pgEnum,
   numeric,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
 
 // Enums
 export const roleEnum = pgEnum('role', ['USER', 'ADMIN']);

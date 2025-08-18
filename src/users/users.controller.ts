@@ -1,10 +1,10 @@
 import { Throttle } from '@nestjs/throttler';
 
-// Role is now defined in schema
-
 import { AdminLogService } from '@/admin/admin-log.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { UsersService } from '@/users/users.service';
+
+// Role is now defined in schema
 
 import {
   Controller,
