@@ -3,9 +3,8 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { RewardHistory } from '@prisma/client';
-
-import { PrismaService } from '@/prisma/prisma.service';
+import { DatabaseService } from '@/database/database.service';
+import { RewardHistory } from '@/database/schema';
 
 export interface CreateRewardDto {
   userId: string;
@@ -15,7 +14,7 @@ export interface CreateRewardDto {
 
 @Injectable()
 export class RewardsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   async addPoints(data: CreateRewardDto): Promise<RewardHistory> {
     // Validate required fields
@@ -29,95 +28,39 @@ export class RewardsService {
     }
 
     // Check if user exists
-    const user = await this.prisma.user.findUnique({
-      where: { id: data.userId },
-    });
-
+    const user = await this.databaseService.findUserById(data.userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     // Create reward history record
-    const rewardHistory = await this.prisma.rewardHistory.create({
-      data: {
-        userId: data.userId,
-        points: data.amount,
-        reason: data.reason,
-      },
+    const rewardHistory = await this.databaseService.createRewardHistory({
+      userId: data.userId,
+      points: data.amount,
+      reason: data.reason,
     });
 
     // Update user points
-    await this.prisma.user.update({
-      where: { id: data.userId },
-      data: {
-        points: {
-          increment: data.amount,
-        },
-      },
+    await this.databaseService.updateUser(data.userId, {
+      points: user.points + data.amount,
     });
 
     return rewardHistory;
   }
 
   async getUserRewards(userId: string, page: number = 1, limit: number = 10) {
-    const skip = (page - 1) * limit;
-
-    const [rewards, total] = await Promise.all([
-      this.prisma.rewardHistory.findMany({
-        where: { userId },
-        orderBy: { date: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.rewardHistory.count({ where: { userId } }),
-    ]);
-
-    return {
-      data: rewards,
-      total,
+    return this.databaseService.findRewardHistoryByUserId({
+      userId,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    };
+    });
   }
 
   async getAllRewards(page: number = 1, limit: number = 10, search?: string) {
-    const skip = (page - 1) * limit;
-    const where: any = {};
-
-    if (search) {
-      where.OR = [
-        { reason: { contains: search, mode: 'insensitive' } },
-        { user: { email: { contains: search, mode: 'insensitive' } } },
-      ];
-    }
-
-    const [rewards, total] = await Promise.all([
-      this.prisma.rewardHistory.findMany({
-        where,
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: { date: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.rewardHistory.count({ where }),
-    ]);
-
-    return {
-      data: rewards,
-      total,
+    return this.databaseService.getAllRewardHistory({
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    };
+      search,
+    });
   }
 }

@@ -9,8 +9,8 @@ import { AdminModule } from '@/admin/admin.module';
 import { AuditModule } from '@/audit/audit.module';
 import { AuthModule } from '@/auth/auth.module';
 import { BookingsModule } from '@/bookings/bookings.module';
+import { DatabaseModule } from '@/database/database.module';
 import { HotelsModule } from '@/hotels/hotels.module';
-import { PrismaModule } from '@/prisma/prisma.module';
 import { RewardsModule } from '@/rewards/rewards.module';
 import { UsersModule } from '@/users/users.module';
 
@@ -19,7 +19,7 @@ import { UsersModule } from '@/users/users.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    PrismaModule,
+    DatabaseModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 1 minute

@@ -1,6 +1,6 @@
 import { Throttle } from '@nestjs/throttler';
 
-import { Role } from '@prisma/client';
+// Role is now defined in schema
 
 import { AdminLogService } from '@/admin/admin-log.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -63,7 +63,7 @@ export class UsersController {
       loginDto.password
     );
 
-    if (user.role === Role.ADMIN) {
+    if (user.role === 'ADMIN') {
       await this.adminLogService.logAction({
         adminId: user.id.toString(),
         action: 'LOGIN_SUCCESS',

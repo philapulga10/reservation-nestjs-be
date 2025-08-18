@@ -5,13 +5,13 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { JwtPayload } from '@/auth/jwt-payload.interface';
 
-import { PrismaService } from '@/prisma/prisma.service';
+import { DatabaseService } from '@/database/database.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    private prisma: PrismaService
+    private databaseService: DatabaseService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -23,9 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.userId },
-    });
+    const user = await this.databaseService.findUserById(payload.userId);
 
     if (!user) {
       throw new UnauthorizedException('User not found');

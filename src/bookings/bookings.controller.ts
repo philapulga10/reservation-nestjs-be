@@ -20,7 +20,7 @@ import {
 import {
   BookingsService,
   CreateBookingDto,
-  CreateBookingData,
+  CreateBookingDataDto,
   UpdateBookingDto,
 } from '@/bookings/bookings.service';
 
@@ -38,7 +38,7 @@ export class BookingsController {
     @Body() createBookingDto: CreateBookingDto,
     @Request() req
   ) {
-    const bookingData: CreateBookingData = {
+    const bookingData: CreateBookingDataDto = {
       ...createBookingDto,
       userId: req.user.userId,
       userEmail: req.user.email,

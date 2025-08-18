@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { AuditLog } from '@prisma/client';
-
-import { PrismaService } from '@/prisma/prisma.service';
+import { DatabaseService } from '@/database/database.service';
+import { AuditLog } from '@/database/schema';
 
 export interface LogActionDto {
   userEmail?: string;
@@ -14,50 +13,36 @@ export interface LogActionDto {
 
 @Injectable()
 export class AuditLogService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   async logAction(data: LogActionDto): Promise<AuditLog> {
-    return this.prisma.auditLog.create({
-      data: {
-        userEmail: data.userEmail,
-        action: data.action,
-        collectionName: data.collectionName,
-        objectId: data.objectId,
-        before: data.before,
-        after: data.after,
-      },
+    return this.databaseService.createAuditLog({
+      userEmail: data.userEmail,
+      action: data.action,
+      collectionName: data.collectionName,
+      objectId: data.objectId,
+      before: data.before,
+      after: data.after,
     });
   }
 
-  async getAuditLogs(page: number = 1, limit: number = 10, search?: string) {
-    const skip = (page - 1) * limit;
-    const where: any = {};
-
-    if (search) {
-      where.OR = [
-        { userEmail: { contains: search, mode: 'insensitive' } },
-        { action: { contains: search, mode: 'insensitive' } },
-        { collectionName: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    const [logs, total] = await Promise.all([
-      this.prisma.auditLog.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.auditLog.count({ where }),
-    ]);
-
-    return {
-      data: logs,
-      total,
+  async getAuditLogs(
+    page: number = 1,
+    limit: number = 10,
+    action?: string,
+    userEmail?: string,
+    collectionName?: string,
+    fromDate?: string,
+    toDate?: string
+  ) {
+    return this.databaseService.getAuditLogs({
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    };
+      action,
+      userEmail,
+      collectionName,
+      fromDate,
+      toDate,
+    });
   }
 }

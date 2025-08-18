@@ -3,11 +3,15 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { Booking } from '@prisma/client';
-
+import {
+  DatabaseService,
+  CreateBookingData,
+  UpdateBookingData,
+} from '@/database/database.service';
 import { AuditLogService } from '@/audit/audit.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Booking } from '@/database/schema';
 
+// ✅ Custom types để match với decimal schema
 export interface CreateBookingDto {
   hotelId: string;
   hotelName: string;
@@ -16,7 +20,7 @@ export interface CreateBookingDto {
   totalPrice: number;
 }
 
-export interface CreateBookingData extends CreateBookingDto {
+export interface CreateBookingDataDto extends CreateBookingDto {
   userId: string;
   userEmail: string;
 }
@@ -37,18 +41,18 @@ export interface BookingStats {
 @Injectable()
 export class BookingsService {
   constructor(
-    private prisma: PrismaService,
+    private databaseService: DatabaseService,
     private auditLogService: AuditLogService
   ) {}
 
-  async createBooking(data: CreateBookingData): Promise<Booking> {
+  async createBooking(data: CreateBookingDataDto): Promise<Booking> {
     // Validate required fields
     if (
       !data.hotelId ||
       !data.hotelName ||
       !data.numDays ||
       !data.numRooms ||
-      !data.totalPrice
+      data.totalPrice === undefined
     ) {
       throw new BadRequestException('All booking fields are required');
     }
@@ -60,9 +64,13 @@ export class BookingsService {
       );
     }
 
-    const booking = await this.prisma.booking.create({
-      data,
-    });
+    // ✅ Convert to database format
+    const bookingData: CreateBookingData = {
+      ...data,
+      totalPrice: data.totalPrice, // Drizzle will automatically convert number → decimal
+    };
+
+    const booking = await this.databaseService.createBooking(bookingData);
 
     // Audit log
     await this.auditLogService.logAction({
@@ -82,27 +90,12 @@ export class BookingsService {
     limit: number = 10,
     filter: Record<string, any> = {}
   ) {
-    const skip = (page - 1) * limit;
-    const where = { userEmail: email, ...filter };
-
-    const [bookings, total] = await Promise.all([
-      this.prisma.booking.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.booking.count({ where }),
-    ]);
-
-    return {
-      data: bookings,
-      total,
+    return this.databaseService.findBookingsForUser({
+      userEmail: email,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    };
+      ...filter,
+    });
   }
 
   async getAllBookings(
@@ -111,40 +104,16 @@ export class BookingsService {
     search?: string,
     filter: Record<string, any> = {}
   ) {
-    const skip = (page - 1) * limit;
-    let where: any = { ...filter };
-
-    if (search) {
-      where.OR = [
-        { userEmail: { contains: search, mode: 'insensitive' } },
-        { hotelName: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    const [bookings, total] = await Promise.all([
-      this.prisma.booking.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.booking.count({ where }),
-    ]);
-
-    return {
-      data: bookings,
-      total,
+    return this.databaseService.getAllBookings({
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    };
+      search,
+      ...filter,
+    });
   }
 
   async getBookingById(id: string): Promise<Booking | null> {
-    return this.prisma.booking.findUnique({
-      where: { id },
-    });
+    return this.databaseService.findBookingById(id);
   }
 
   async updateBooking(
@@ -152,18 +121,23 @@ export class BookingsService {
     data: UpdateBookingDto,
     userEmail: string
   ): Promise<Booking | null> {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id },
-    });
+    const booking = await this.databaseService.findBookingById(id);
     if (!booking) {
       throw new NotFoundException('Booking not found');
     }
 
     const before = booking;
-    const updatedBooking = await this.prisma.booking.update({
-      where: { id },
-      data,
-    });
+
+    // ✅ Convert to database format
+    const updateData: UpdateBookingData = {
+      ...data,
+      updatedAt: new Date(),
+    };
+
+    const updatedBooking = await this.databaseService.updateBooking(
+      id,
+      updateData
+    );
 
     // Audit log
     await this.auditLogService.logAction({
@@ -179,17 +153,14 @@ export class BookingsService {
   }
 
   async cancelBooking(id: string, userEmail: string): Promise<Booking | null> {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id },
-    });
+    const booking = await this.databaseService.findBookingById(id);
     if (!booking) {
       throw new NotFoundException('Booking not found');
     }
 
     const before = booking;
-    const cancelledBooking = await this.prisma.booking.update({
-      where: { id },
-      data: { isCancelled: true },
+    const cancelledBooking = await this.databaseService.updateBooking(id, {
+      isCancelled: true,
     });
 
     // Audit log
@@ -206,17 +177,14 @@ export class BookingsService {
   }
 
   async toggleStatus(id: string, userEmail: string): Promise<Booking | null> {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id },
-    });
+    const booking = await this.databaseService.findBookingById(id);
     if (!booking) {
       throw new NotFoundException('Booking not found');
     }
 
     const before = booking;
-    const updatedBooking = await this.prisma.booking.update({
-      where: { id },
-      data: { isCancelled: !booking.isCancelled },
+    const updatedBooking = await this.databaseService.updateBooking(id, {
+      isCancelled: !booking.isCancelled,
     });
 
     // Audit log
@@ -233,23 +201,6 @@ export class BookingsService {
   }
 
   async getBookingStats(): Promise<BookingStats> {
-    const [totalBookings, activeBookings, cancelledBookings, totalRevenueAgg] =
-      await Promise.all([
-        this.prisma.booking.count(),
-        this.prisma.booking.count({ where: { isCancelled: false } }),
-        this.prisma.booking.count({ where: { isCancelled: true } }),
-        this.prisma.booking.aggregate({
-          _sum: {
-            totalPrice: true,
-          },
-        }),
-      ]);
-
-    return {
-      totalBookings,
-      activeBookings,
-      cancelledBookings,
-      totalRevenue: totalRevenueAgg._sum.totalPrice || 0,
-    };
+    return this.databaseService.getBookingStats();
   }
 }

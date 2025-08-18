@@ -4,10 +4,10 @@ import { AdminBookingsController } from '@/admin/admin-bookings.controller';
 import { AdminLogController } from '@/admin/admin-log.controller';
 import { AdminLogService } from '@/admin/admin-log.service';
 import { BookingsModule } from '@/bookings/bookings.module';
-import { PrismaModule } from '@/prisma/prisma.module';
+import { DatabaseModule } from '@/database/database.module';
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => BookingsModule)],
+  imports: [DatabaseModule, forwardRef(() => BookingsModule)],
   controllers: [AdminLogController, AdminBookingsController],
   providers: [AdminLogService],
   exports: [AdminLogService],

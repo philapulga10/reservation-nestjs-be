@@ -5,11 +5,11 @@ import { PassportModule } from '@nestjs/passport';
 
 import { AuthService } from '@/auth/auth.service';
 import { JwtStrategy } from '@/auth/strategies/jwt.strategy';
-import { PrismaModule } from '@/prisma/prisma.module';
+import { DatabaseModule } from '@/database/database.module';
 
 @Module({
   imports: [
-    PrismaModule,
+    DatabaseModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

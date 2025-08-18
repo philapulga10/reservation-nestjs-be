@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Hotel } from '@prisma/client';
-
-import { PrismaService } from '@/prisma/prisma.service';
+import { DatabaseService } from '@/database/database.service';
+import { Hotel } from '@/database/schema';
 
 @Injectable()
 export class HotelsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   async getHotels(
     location?: string,
@@ -13,47 +12,19 @@ export class HotelsService {
     page: number = 1,
     limit: number = 10
   ) {
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-    if (location && location !== 'all') {
-      where.location = location;
-    }
-    if (search) {
-      where.name = {
-        contains: search,
-        mode: 'insensitive',
-      };
-    }
-
-    const [data, total] = await Promise.all([
-      this.prisma.hotel.findMany({
-        where,
-        skip,
-        take: limit,
-      }),
-      this.prisma.hotel.count({ where }),
-    ]);
-
-    return {
-      data,
-      total,
+    return this.databaseService.findHotels({
+      location,
+      search,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    };
+    });
   }
 
   async getHotelById(id: string): Promise<Hotel> {
-    const hotel = await this.prisma.hotel.findUnique({
-      where: { id },
-    });
-
+    const hotel = await this.databaseService.findHotelById(id);
     if (!hotel) {
       throw new NotFoundException('Hotel not found');
     }
-
     return hotel;
   }
 }

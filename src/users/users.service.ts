@@ -1,11 +1,9 @@
-import { ConfigService } from '@nestjs/config';
-import { User, Role } from '@prisma/client';
-
 import * as bcrypt from 'bcrypt';
 
 import { AuditLogService } from '@/audit/audit.service';
 import { AuthService } from '@/auth/auth.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { DatabaseService } from '@/database/database.service';
+import { User } from '@/database/schema';
 
 import {
   Injectable,
@@ -21,17 +19,14 @@ export interface LoginResult {
 @Injectable()
 export class UsersService {
   constructor(
-    private prisma: PrismaService,
+    private databaseService: DatabaseService,
     private auditLogService: AuditLogService,
-    private configService: ConfigService,
     private authService: AuthService
   ) {}
 
   async registerUser(email: string, password: string): Promise<User> {
     // Check if user already exists
-    const existing = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const existing = await this.databaseService.findUserByEmail(email);
     if (existing) {
       throw new ConflictException('Email already registered');
     }
@@ -41,12 +36,10 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Save user
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        role: Role.USER,
-      },
+    const user = await this.databaseService.createUser({
+      email,
+      password: hashedPassword,
+      role: 'USER',
     });
 
     // Audit log
@@ -66,9 +59,7 @@ export class UsersService {
 
   async loginUser(email: string, password: string): Promise<LoginResult> {
     // Find user
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.databaseService.findUserByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -94,22 +85,16 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { email },
-    });
+    return this.databaseService.findUserByEmail(email);
   }
 
   async findById(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { id },
-    });
+    return this.databaseService.findUserById(id);
   }
 
   async createAdminUser(email: string, password: string): Promise<User> {
     // Check if user already exists
-    const existing = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const existing = await this.databaseService.findUserByEmail(email);
     if (existing) {
       throw new ConflictException('Email already registered');
     }
@@ -119,12 +104,10 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Save admin user
-    const adminUser = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        role: Role.ADMIN,
-      },
+    const adminUser = await this.databaseService.createUser({
+      email,
+      password: hashedPassword,
+      role: 'ADMIN',
     });
 
     // Audit log

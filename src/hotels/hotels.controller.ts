@@ -1,6 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-
-import { HotelsService } from '@/hotels/hotels.service';
+import { HotelsService } from './hotels.service';
 
 @Controller('hotels')
 export class HotelsController {
@@ -10,14 +9,14 @@ export class HotelsController {
   async getHotels(
     @Query('location') location?: string,
     @Query('search') search?: string,
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10'
+    @Query('page') page?: string,
+    @Query('limit') limit?: string
   ) {
     return this.hotelsService.getHotels(
       location,
       search,
-      parseInt(page),
-      parseInt(limit)
+      parseInt(page) || 1,
+      parseInt(limit) || 10
     );
   }
 

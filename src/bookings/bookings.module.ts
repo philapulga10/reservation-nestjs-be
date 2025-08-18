@@ -5,10 +5,10 @@ import { AdminModule } from '@/admin/admin.module';
 import { AuditModule } from '@/audit/audit.module';
 import { BookingsController } from '@/bookings/bookings.controller';
 import { BookingsService } from '@/bookings/bookings.service';
-import { PrismaModule } from '@/prisma/prisma.module';
+import { DatabaseModule } from '@/database/database.module';
 
 @Module({
-  imports: [PrismaModule, AuditModule, forwardRef(() => AdminModule)],
+  imports: [DatabaseModule, AuditModule, forwardRef(() => AdminModule)],
   controllers: [BookingsController],
   providers: [BookingsService],
   exports: [BookingsService],
