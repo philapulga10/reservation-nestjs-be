@@ -125,4 +125,35 @@ export class UsersService {
 
     return adminUser;
   }
+
+  async logoutUser(userId: string, token?: string): Promise<void> {
+    // Get user info
+    const user = await this.databaseService.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Update user's last logout time
+    await this.databaseService.updateUser(userId, {
+      lastLogoutAt: new Date(),
+    });
+
+    // If token is provided, add it to blacklist (optional - depends on your JWT strategy)
+    if (token) {
+      // You can implement token blacklisting here
+      // For example, store in Redis with expiration time
+      // await this.redisService.setex(`blacklist:${token}`, 3600, '1'); // 1 hour
+    }
+
+    // Audit log
+    await this.auditLogService.logAction({
+      userEmail: user.email,
+      action: 'logout',
+      collectionName: 'users',
+      objectId: userId,
+      after: {
+        lastLogoutAt: new Date(),
+      },
+    });
+  }
 }

@@ -1,6 +1,7 @@
 // import { Throttle } from '@nestjs/throttler';
 
 import { AdminLogService } from '@/admin/admin-log.service';
+import { AuditLogService } from '@/audit/audit.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { UsersService } from '@/users/users.service';
 
@@ -30,7 +31,8 @@ export class LoginDto {
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly adminLogService: AdminLogService
+    private readonly adminLogService: AdminLogService,
+    private readonly auditLogService: AuditLogService
   ) {}
 
   @Post('register')
@@ -102,5 +104,21 @@ export class UsersController {
 
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(@Request() req) {
+    // Get token from request headers
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.replace('Bearer ', '');
+
+    // Call logout service method
+    await this.usersService.logoutUser(req.user.userId, token);
+
+    return {
+      message: 'Logged out successfully',
+    };
   }
 }

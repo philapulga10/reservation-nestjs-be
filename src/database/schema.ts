@@ -23,6 +23,7 @@ export const users = pgTable('users', {
   password: text('password').notNull(),
   role: roleEnum('role').notNull().default('USER'),
   points: integer('points').notNull().default(0),
+  lastLogoutAt: timestamp('last_logout_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
