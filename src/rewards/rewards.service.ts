@@ -7,45 +7,71 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-export interface CreateRewardDto {
-  userId: string;
-  amount: number;
-  reason: string;
-}
+import { EarnPointsDto } from './rewards.dto';
 
 @Injectable()
 export class RewardsService {
   constructor(private databaseService: DatabaseService) {}
 
-  async addPoints(data: CreateRewardDto): Promise<RewardHistory> {
-    // Validate required fields
-    if (!data.userId || !data.amount || !data.reason) {
-      throw new BadRequestException('userId, amount, and reason are required');
-    }
+  async earnPoints(userId: string, dto: EarnPointsDto): Promise<RewardHistory> {
+    const { amount, reason } = dto;
 
-    // Validate amount is positive
-    if (data.amount <= 0) {
+    if (!amount || amount <= 0) {
       throw new BadRequestException('Amount must be a positive number');
     }
+    if (!reason) {
+      throw new BadRequestException('Reason is required');
+    }
 
-    // Check if user exists
-    const user = await this.databaseService.findUserById(data.userId);
+    const user = await this.databaseService.findUserById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // Create reward history record
+    const newBalance = (user.points || 0) + amount;
+
     const rewardHistory = await this.databaseService.createRewardHistory({
-      userId: data.userId,
-      points: data.amount,
-      reason: data.reason,
+      userId,
+      points: amount,
+      reason,
+      balanceAfter: newBalance,
+      type: 'EARN',
+      actorId: userId,
+      metadata: { source: 'member' },
+      correlationId: dto.correlationId,
     });
 
-    // Update user points
-    await this.databaseService.updateUser(data.userId, {
-      points: user.points + data.amount,
+    await this.databaseService.updateUser(userId, { points: newBalance });
+    return rewardHistory;
+  }
+
+  async adjustPoints(
+    targetUserId: string,
+    delta: number,
+    reason: string,
+    actorId: string
+  ): Promise<RewardHistory> {
+    if (!targetUserId) throw new BadRequestException('userId is required');
+    if (!reason) throw new BadRequestException('reason is required');
+    if (!delta || delta === 0)
+      throw new BadRequestException('delta must be a non-zero number');
+
+    const user = await this.databaseService.findUserById(targetUserId);
+    if (!user) throw new NotFoundException('User not found');
+
+    const newBalance = (user.points || 0) + delta;
+
+    const rewardHistory = await this.databaseService.createRewardHistory({
+      userId: targetUserId,
+      points: delta,
+      reason: `ADMIN_ADJUST: ${reason}`,
+      balanceAfter: newBalance,
+      type: 'ADJUST',
+      actorId,
+      metadata: { source: 'admin' },
     });
 
+    await this.databaseService.updateUser(targetUserId, { points: newBalance });
     return rewardHistory;
   }
 

@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1755446480077,
-      "tag": "0000_wet_demogoblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1755488188768,
-      "tag": "0001_noisy_sunfire",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1755576740687,
-      "tag": "0002_goofy_tenebrous",
+      "when": 1755683492307,
+      "tag": "0000_melodic_maddog",
       "breakpoints": true
     }
   ]

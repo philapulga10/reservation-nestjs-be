@@ -29,7 +29,6 @@ export class DatabaseService implements OnModuleDestroy {
     return db;
   }
 
-  // User operations
   async findUserById(id: string) {
     const result = await db
       .select()
@@ -60,7 +59,6 @@ export class DatabaseService implements OnModuleDestroy {
     return result[0];
   }
 
-  // Hotel operations
   async findHotels(params: {
     location?: string;
     search?: string;
@@ -113,12 +111,20 @@ export class DatabaseService implements OnModuleDestroy {
     return result[0] || null;
   }
 
-  // ✅ Updated Booking operations with custom types
+  async createHotel(data: schema.NewHotel) {
+    const result = await db.insert(schema.hotels).values(data).returning();
+    return result[0];
+  }
+
+  async getAllHotels() {
+    const result = await db.select().from(schema.hotels);
+    return result;
+  }
+
   async createBooking(data: CreateBookingData) {
-    // ✅ Cast to match Drizzle's expected types
     const bookingData = {
       ...data,
-      totalPrice: data.totalPrice.toString(), // Convert number to string for Drizzle
+      totalPrice: data.totalPrice.toString(),
     } as any;
     const result = await db
       .insert(schema.bookings)
@@ -187,7 +193,6 @@ export class DatabaseService implements OnModuleDestroy {
   }
 
   async updateBooking(id: string, data: UpdateBookingData) {
-    // ✅ Cast to match Drizzle's expected types
     const updateData = {
       ...data,
       ...(data.totalPrice !== undefined && {
@@ -279,7 +284,6 @@ export class DatabaseService implements OnModuleDestroy {
     };
   }
 
-  // Reward operations
   async createRewardHistory(data: schema.NewRewardHistory) {
     const result = await db
       .insert(schema.rewardHistory)
@@ -310,12 +314,13 @@ export class DatabaseService implements OnModuleDestroy {
         .where(eq(schema.rewardHistory.userId, userId)),
     ]);
 
+    const totalNum = Number(total[0]?.count || 0);
     return {
       data,
-      total: Number(total[0]?.count || 0),
+      total: totalNum,
       page,
       limit,
-      totalPages: Math.ceil(Number(total[0]?.count || 0) / limit),
+      totalPages: Math.ceil(totalNum / limit),
       currentPage: page,
     };
   }
@@ -328,8 +333,8 @@ export class DatabaseService implements OnModuleDestroy {
     const { page = 1, limit = 10, search } = params;
     const offset = (page - 1) * limit;
 
-    let whereClause = undefined;
-    if (search) {
+    let whereClause: any = undefined;
+    if (search && search.trim()) {
       whereClause = or(ilike(schema.rewardHistory.reason, `%${search}%`));
     }
 
@@ -341,20 +346,23 @@ export class DatabaseService implements OnModuleDestroy {
         .orderBy(desc(schema.rewardHistory.date))
         .limit(limit)
         .offset(offset),
-      db.select({ count: sql`count(*)` }).from(schema.rewardHistory),
+      db
+        .select({ count: sql`count(*)` })
+        .from(schema.rewardHistory)
+        .where(whereClause),
     ]);
 
+    const totalNum = Number(total[0]?.count || 0);
     return {
       data,
-      total: Number(total[0]?.count || 0),
+      total: totalNum,
       page,
       limit,
-      totalPages: Math.ceil(Number(total[0]?.count || 0) / limit),
+      totalPages: Math.ceil(totalNum / limit),
       currentPage: page,
     };
   }
 
-  // Audit log operations
   async createAuditLog(data: schema.NewAuditLog) {
     const result = await db.insert(schema.auditLogs).values(data).returning();
     return result[0];
@@ -429,7 +437,6 @@ export class DatabaseService implements OnModuleDestroy {
     };
   }
 
-  // Admin log operations
   async createAdminLog(data: schema.NewAdminLog) {
     const result = await db.insert(schema.adminLogs).values(data).returning();
     return result[0];

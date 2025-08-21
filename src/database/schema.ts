@@ -9,6 +9,8 @@ import {
   json,
   pgEnum,
   numeric,
+  index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 // Enums
@@ -90,20 +92,51 @@ export const adminLogs = pgTable('admin_logs', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const rewardTxType = pgEnum('reward_tx_type', [
+  'EARN',
+  'REDEEM',
+  'ADJUST',
+]);
+
 // Reward history table
-export const rewardHistory = pgTable('reward_history', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id),
-  date: timestamp('date').notNull().defaultNow(),
-  points: integer('points').notNull(),
-  reason: text('reason').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+export const rewardHistory = pgTable(
+  'reward_history',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    actorId: text('actor_id').references(() => users.id),
+    type: rewardTxType('type').notNull().default('EARN'),
+    date: timestamp('date').notNull().defaultNow(),
+    points: integer('points').notNull(),
+    balanceAfter: integer('balance_after').notNull(),
+    reason: text('reason').notNull(),
+    metadata: json('metadata').notNull().default('{}'),
+    correlationId: text('correlation_id'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  table => ({
+    idxUserDate: index('idx_reward_history_user_date').on(
+      table.userId,
+      table.date
+    ),
+    idxTypeDate: index('idx_reward_history_type_date').on(
+      table.type,
+      table.date
+    ),
+    idxActorDate: index('idx_reward_history_actor_date').on(
+      table.actorId,
+      table.date
+    ),
+    uidCorrelation: uniqueIndex('uid_reward_history_corr').on(
+      table.correlationId
+    ),
+  })
+);
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
