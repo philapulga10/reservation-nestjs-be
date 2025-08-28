@@ -37,6 +37,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.5",
     "@nestjs/throttler": "^6.4.0",
+    "@trpc/server": "^11.0.0-rc.660",
     "@types/pg": "^8.15.5",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -49,7 +50,8 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.3",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.10",
