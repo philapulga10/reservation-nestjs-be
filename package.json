@@ -24,7 +24,8 @@
     "create:user": "npx ts-node -r tsconfig-paths/register scripts/create-user.ts",
     "insert:hotels": "npx ts-node -r tsconfig-paths/register scripts/insert-hotels.ts",
     "refactor:imports": "node scripts/refactor-imports.js",
-    "refactor:all": "npm run refactor:imports && npm run build"
+    "refactor:all": "npm run refactor:imports && npm run build",
+    "generate:trpc-types": "ts-node -r tsconfig-paths/register scripts/generate-trpc-types.ts"
   },
   "keywords": [],
   "author": "",
