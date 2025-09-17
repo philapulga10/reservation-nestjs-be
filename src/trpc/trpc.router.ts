@@ -1,5 +1,5 @@
-import { router, publicProcedure } from '@/trpc/trpc.core';
-import { hotelsRouter } from '@/trpc/routers/hotels.router';
+import { router, publicProcedure } from './trpc.core';
+import { hotelsRouter } from './routers/hotels.router';
 
 export const appRouter = router({
   health: publicProcedure.query(() => ({ ok: true })),
@@ -7,5 +7,3 @@ export const appRouter = router({
 });
 
 export type AppRouter = typeof appRouter;
-
-

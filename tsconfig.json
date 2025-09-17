@@ -36,6 +36,6 @@
       "@/middlewares/*": ["src/middlewares/*"],
       "@/decorators/*": ["src/decorators/*"],
       "@/constants/*": ["src/constants/*"]
-    }
+    },
   }
 } 
