@@ -38,4 +38,87 @@ export const bookingsRouter = router({
         filter
       );
     }),
+
+  create: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        hotelId: z.string(),
+        hotelName: z.string(),
+        numDays: z.number(),
+        numRooms: z.number(),
+        totalPrice: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const payload = await ctx.authService!.verifyToken(input.token);
+      const user = await ctx.usersService!.findById(payload.userId);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const bookingData = {
+        hotelId: input.hotelId,
+        hotelName: input.hotelName,
+        numDays: input.numDays,
+        numRooms: input.numRooms,
+        totalPrice: input.totalPrice,
+        userId: user.id,
+        userEmail: user.email,
+      };
+
+      return ctx.bookingsService!.createBooking(bookingData);
+    }),
+
+  cancel: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const payload = await ctx.authService!.verifyToken(input.token);
+      const user = await ctx.usersService!.findById(payload.userId);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return ctx.bookingsService!.cancelBooking(input.id, user.email);
+    }),
+
+  update: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        id: z.string(),
+        payload: z.object({
+          checkIn: z.string().optional(),
+          checkOut: z.string().optional(),
+          guests: z.number().optional(),
+          numRooms: z.number().optional(),
+          numDays: z.number().optional(),
+          totalPrice: z.number().optional(),
+          status: z
+            .enum(['pending', 'confirmed', 'cancelled', 'completed'])
+            .optional(),
+        }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const payload = await ctx.authService!.verifyToken(input.token);
+      const user = await ctx.usersService!.findById(payload.userId);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return ctx.bookingsService!.updateBooking(
+        input.id,
+        input.payload,
+        user.email
+      );
+    }),
 });

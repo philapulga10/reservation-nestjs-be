@@ -10,6 +10,7 @@ import { HotelsService } from '@/hotels/hotels.service';
 import { UsersService } from '@/users/users.service';
 import { AuthService } from '@/auth/auth.service';
 import { BookingsService } from '@/bookings/bookings.service';
+import { AdminLogService } from '@/admin/admin-log.service';
 import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 
 dotenv.config();
@@ -45,6 +46,7 @@ async function bootstrap() {
           usersService: app.get(UsersService),
           authService: app.get(AuthService),
           bookingsService: app.get(BookingsService),
+          adminLogService: app.get(AdminLogService),
         } as any),
     })
   );
