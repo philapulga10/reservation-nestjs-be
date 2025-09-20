@@ -9,6 +9,7 @@ import { createContext } from '@/trpc/trpc.context';
 import { HotelsService } from '@/hotels/hotels.service';
 import { UsersService } from '@/users/users.service';
 import { AuthService } from '@/auth/auth.service';
+import { BookingsService } from '@/bookings/bookings.service';
 import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 
 dotenv.config();
@@ -43,6 +44,7 @@ async function bootstrap() {
           hotelsService: app.get(HotelsService),
           usersService: app.get(UsersService),
           authService: app.get(AuthService),
+          bookingsService: app.get(BookingsService),
         } as any),
     })
   );
