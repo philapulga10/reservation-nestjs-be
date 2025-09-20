@@ -7,6 +7,8 @@ import { AppModule } from '@/app.module';
 import { appRouter } from '@/trpc/trpc.router';
 import { createContext } from '@/trpc/trpc.context';
 import { HotelsService } from '@/hotels/hotels.service';
+import { UsersService } from '@/users/users.service';
+import { AuthService } from '@/auth/auth.service';
 import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 
 dotenv.config();
@@ -35,10 +37,12 @@ async function bootstrap() {
     '/trpc',
     createExpressMiddleware({
       router: appRouter,
-      createContext: (opts) =>
+      createContext: opts =>
         createContext({
           ...opts,
           hotelsService: app.get(HotelsService),
+          usersService: app.get(UsersService),
+          authService: app.get(AuthService),
         } as any),
     })
   );
