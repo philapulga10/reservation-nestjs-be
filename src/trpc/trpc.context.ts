@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { BookingsService } from '../bookings/bookings.service';
 import { AdminLogService } from '../admin/admin-log.service';
+import { RewardsService } from '../rewards/rewards.service';
 
 export type CreateContextParams = CreateExpressContextOptions & {
   hotelsService?: HotelsService;
@@ -12,6 +13,7 @@ export type CreateContextParams = CreateExpressContextOptions & {
   authService?: AuthService;
   bookingsService?: BookingsService;
   adminLogService?: AdminLogService;
+  rewardsService?: RewardsService;
 };
 
 export async function createContext({
@@ -22,6 +24,7 @@ export async function createContext({
   authService,
   bookingsService,
   adminLogService,
+  rewardsService,
 }: CreateContextParams) {
   return {
     req,
@@ -31,6 +34,7 @@ export async function createContext({
     authService,
     bookingsService,
     adminLogService,
+    rewardsService,
   };
 }
 

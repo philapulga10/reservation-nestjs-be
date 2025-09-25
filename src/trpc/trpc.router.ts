@@ -3,6 +3,7 @@ import { hotelsRouter } from './routers/hotels.router';
 import { usersRouter } from './routers/users.router';
 import { bookingsRouter } from './routers/bookings.router';
 import { adminRouter } from './routers/admin.router';
+import { rewardsRouter } from './routers/rewards.router';
 
 export const appRouter = router({
   health: publicProcedure.query(() => ({ ok: true })),
@@ -10,6 +11,7 @@ export const appRouter = router({
   users: usersRouter,
   bookings: bookingsRouter,
   admin: adminRouter,
+  rewards: rewardsRouter,
 });
 
 export type AppRouter = typeof appRouter;
