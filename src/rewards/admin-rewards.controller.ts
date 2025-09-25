@@ -11,7 +11,6 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
-  ParseIntPipe,
 } from '@nestjs/common';
 
 @UseGuards(JwtAuthGuard)
