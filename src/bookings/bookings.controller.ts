@@ -56,7 +56,6 @@ export class BookingsController {
   ) {
     const filter: Record<string, any> = {};
 
-    // Handle both isCancelled and status parameters for compatibility
     if (isCancelled !== undefined) {
       filter.isCancelled = isCancelled === 'true';
     } else if (status !== undefined) {

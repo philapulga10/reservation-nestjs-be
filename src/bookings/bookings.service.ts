@@ -11,6 +11,7 @@ import {
   CreateBookingData,
   UpdateBookingData,
 } from '@/database/database.service';
+import { TBookingStatus } from '@mini-pn/contracts';
 
 // ✅ Custom types để match với decimal schema
 export interface CreateBookingDto {
@@ -47,7 +48,6 @@ export class BookingsService {
   ) {}
 
   async createBooking(data: CreateBookingDataDto): Promise<Booking> {
-    // Validate required fields
     if (
       !data.hotelId ||
       !data.hotelName ||
@@ -58,7 +58,6 @@ export class BookingsService {
       throw new BadRequestException('All booking fields are required');
     }
 
-    // Validate positive values
     if (data.numDays <= 0 || data.numRooms <= 0 || data.totalPrice <= 0) {
       throw new BadRequestException(
         'Days, rooms, and price must be positive numbers'
@@ -73,7 +72,6 @@ export class BookingsService {
 
     const booking = await this.databaseService.createBooking(bookingData);
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail: data.userEmail,
       action: 'create',
@@ -103,13 +101,13 @@ export class BookingsService {
     page: number = 1,
     limit: number = 10,
     search?: string,
-    filter: Record<string, any> = {}
+    opts?: { status?: TBookingStatus }
   ) {
     return this.databaseService.getAllBookings({
       page,
       limit,
       search,
-      ...filter,
+      status: opts?.status,
     });
   }
 
@@ -140,7 +138,6 @@ export class BookingsService {
       updateData
     );
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail,
       action: 'update',
@@ -164,7 +161,6 @@ export class BookingsService {
       isCancelled: true,
     });
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail,
       action: 'cancel',
@@ -188,7 +184,6 @@ export class BookingsService {
       isCancelled: !booking.isCancelled,
     });
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail,
       action: 'toggle_status',

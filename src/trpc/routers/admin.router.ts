@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { publicProcedure, router } from '../trpc.core';
+import { BookingStatusFilter, filterToDomainStatus } from '@mini-pn/contracts';
 
 export const adminRouter = router({
   bookings: publicProcedure
@@ -9,7 +10,7 @@ export const adminRouter = router({
         page: z.number().int().positive().optional(),
         limit: z.number().int().positive().optional(),
         searchKeyword: z.string().optional(),
-        statusFilter: z.string().optional(),
+        statusFilter: BookingStatusFilter.optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -20,20 +21,12 @@ export const adminRouter = router({
         throw new Error('Admin access required');
       }
 
-      const filter: Record<string, any> = {};
-      if (input.statusFilter) {
-        if (input.statusFilter === 'cancelled') {
-          filter.isCancelled = true;
-        } else if (input.statusFilter === 'active') {
-          filter.isCancelled = false;
-        }
-      }
-
+      const domainStatus = filterToDomainStatus(input.statusFilter);
       return ctx.bookingsService!.getAllBookings(
         input.page || 1,
         input.limit || 10,
         input.searchKeyword,
-        filter
+        { status: domainStatus }
       );
     }),
 

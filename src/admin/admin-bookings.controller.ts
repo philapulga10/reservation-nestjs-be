@@ -50,7 +50,6 @@ export class AdminBookingsController {
       filter
     );
 
-    // Log admin actions
     if (hotelName || isCancelled !== undefined) {
       await this.adminLogService.logAction({
         adminId: req.user.userId,

@@ -12,7 +12,6 @@ export const bookingsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      // Verify token and get user
       const payload = await ctx.authService!.verifyToken(input.token);
       const user = await ctx.usersService!.findById(payload.userId);
 
@@ -22,7 +21,6 @@ export const bookingsRouter = router({
 
       const filter: Record<string, any> = {};
 
-      // Handle status parameter
       if (input.status !== undefined) {
         if (input.status === 'cancelled') {
           filter.isCancelled = true;
@@ -35,7 +33,7 @@ export const bookingsRouter = router({
         user.email,
         input.page || 1,
         input.limit || 5,
-        filter
+        { status: input.status as 'active' | 'cancelled' | undefined }
       );
     }),
 

@@ -75,10 +75,8 @@ export const usersRouter = router({
   logout: publicProcedure
     .input(z.object({ token: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Verify token and get user
       const payload = await ctx.authService!.verifyToken(input.token);
 
-      // Call logout service method
       await ctx.usersService!.logoutUser(payload.userId, input.token);
 
       return {

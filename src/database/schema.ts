@@ -13,10 +13,8 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
-// Enums
 export const roleEnum = pgEnum('role', ['USER', 'ADMIN']);
 
-// Users table
 export const users = pgTable('users', {
   id: text('id')
     .primaryKey()
@@ -30,7 +28,6 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Hotels table
 export const hotels = pgTable('hotels', {
   id: text('id')
     .primaryKey()
@@ -44,7 +41,6 @@ export const hotels = pgTable('hotels', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Bookings table
 export const bookings = pgTable('bookings', {
   id: text('id')
     .primaryKey()
@@ -65,7 +61,6 @@ export const bookings = pgTable('bookings', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Audit logs table
 export const auditLogs = pgTable('audit_logs', {
   id: text('id')
     .primaryKey()
@@ -80,7 +75,6 @@ export const auditLogs = pgTable('audit_logs', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Admin logs table
 export const adminLogs = pgTable('admin_logs', {
   id: text('id')
     .primaryKey()
@@ -98,7 +92,6 @@ export const rewardTxType = pgEnum('reward_tx_type', [
   'ADJUST',
 ]);
 
-// Reward history table
 export const rewardHistory = pgTable(
   'reward_history',
   {
@@ -174,7 +167,6 @@ export const adminLogsRelations = relations(adminLogs, ({ one }) => ({
   }),
 }));
 
-// Types
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Hotel = typeof hotels.$inferSelect;

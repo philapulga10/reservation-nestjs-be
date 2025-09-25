@@ -3,6 +3,7 @@ import { eq, ilike, or, and, gte, lte, desc, sql } from 'drizzle-orm';
 
 import { db } from '@/database/connection';
 import * as schema from '@/database/schema';
+import { domainStatusToIsCancelled, TBookingStatus } from '@mini-pn/contracts';
 
 // ✅ Custom types to handle decimal fields
 export interface CreateBookingData {
@@ -68,37 +69,38 @@ export class DatabaseService implements OnModuleDestroy {
     const { location, search, page = 1, limit = 10 } = params;
     const offset = (page - 1) * limit;
 
-    let whereClause = '';
-    const queryParams: any[] = [];
+    let whereConditions = [];
 
     if (location && location !== 'all') {
-      whereClause += ' WHERE location = $1';
-      queryParams.push(location);
+      whereConditions.push(eq(schema.hotels.location, location));
     }
 
     if (search) {
-      const searchParam = location && location !== 'all' ? 2 : 1;
-      whereClause += whereClause
-        ? ` AND name ILIKE $${searchParam}`
-        : ` WHERE name ILIKE $${searchParam}`;
-      queryParams.push(`%${search}%`);
+      whereConditions.push(ilike(schema.hotels.name, `%${search}%`));
     }
 
+    const whereClause =
+      whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
     const [data, total] = await Promise.all([
-      db.execute(
-        sql`SELECT * FROM hotels${whereClause ? sql.raw(whereClause) : sql``} LIMIT ${limit} OFFSET ${offset}`
-      ),
-      db.execute(
-        sql`SELECT count(*) FROM hotels${whereClause ? sql.raw(whereClause) : sql``}`
-      ),
+      db
+        .select()
+        .from(schema.hotels)
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql`count(*)` })
+        .from(schema.hotels)
+        .where(whereClause),
     ]);
 
     return {
-      data: data.rows,
-      total: Number(total.rows[0]?.count || 0),
+      data,
+      total: Number(total[0]?.count || 0),
       page,
       limit,
-      totalPages: Math.ceil(Number(total.rows[0]?.count || 0) / limit),
+      totalPages: Math.ceil(Number(total[0]?.count || 0) / limit),
       currentPage: page,
     };
   }
@@ -212,7 +214,7 @@ export class DatabaseService implements OnModuleDestroy {
     page?: number;
     limit?: number;
     search?: string;
-    status?: string;
+    status?: TBookingStatus;
   }) {
     const { page = 1, limit = 10, search, status } = params;
     const offset = (page - 1) * limit;
@@ -220,9 +222,8 @@ export class DatabaseService implements OnModuleDestroy {
     let whereConditions = [];
 
     if (status) {
-      whereConditions.push(
-        eq(schema.bookings.isCancelled, status === 'cancelled')
-      );
+      const isCancelled = domainStatusToIsCancelled(status);
+      whereConditions.push(eq(schema.bookings.isCancelled, isCancelled));
     }
 
     if (search) {
@@ -245,7 +246,10 @@ export class DatabaseService implements OnModuleDestroy {
         .orderBy(desc(schema.bookings.createdAt))
         .limit(limit)
         .offset(offset),
-      db.select({ count: sql`count(*)` }).from(schema.bookings),
+      db
+        .select({ count: sql`count(*)` })
+        .from(schema.bookings)
+        .where(whereClause),
     ]);
 
     return {

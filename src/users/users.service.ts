@@ -25,24 +25,20 @@ export class UsersService {
   ) {}
 
   async registerUser(email: string, password: string): Promise<User> {
-    // Check if user already exists
     const existing = await this.databaseService.findUserByEmail(email);
     if (existing) {
       throw new ConflictException('Email already registered');
     }
 
-    // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Save user
     const user = await this.databaseService.createUser({
       email,
       password: hashedPassword,
       role: 'USER',
     });
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail: email,
       action: 'register',
@@ -58,13 +54,11 @@ export class UsersService {
   }
 
   async loginUser(email: string, password: string): Promise<LoginResult> {
-    // Find user
     const user = await this.databaseService.findUserByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');
@@ -73,7 +67,6 @@ export class UsersService {
     // Create JWT using AuthService
     const token = await this.authService.generateToken(user);
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail: email,
       action: 'login',
@@ -93,24 +86,20 @@ export class UsersService {
   }
 
   async createAdminUser(email: string, password: string): Promise<User> {
-    // Check if user already exists
     const existing = await this.databaseService.findUserByEmail(email);
     if (existing) {
       throw new ConflictException('Email already registered');
     }
 
-    // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Save admin user
     const adminUser = await this.databaseService.createUser({
       email,
       password: hashedPassword,
       role: 'ADMIN',
     });
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail: email,
       action: 'create_admin',
@@ -127,7 +116,6 @@ export class UsersService {
   }
 
   async logoutUser(userId: string, token?: string): Promise<void> {
-    // Get user info
     const user = await this.databaseService.findUserById(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -145,7 +133,6 @@ export class UsersService {
       // await this.redisService.setex(`blacklist:${token}`, 3600, '1'); // 1 hour
     }
 
-    // Audit log
     await this.auditLogService.logAction({
       userEmail: user.email,
       action: 'logout',
