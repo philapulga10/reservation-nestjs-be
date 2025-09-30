@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { AuditLogController } from '@/audit/audit.controller';
 import { AuditLogService } from '@/audit/audit.service';
 import { DatabaseModule } from '@/database/database.module';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [AuditLogController],
+  controllers: [],
   providers: [AuditLogService],
   exports: [AuditLogService],
 })

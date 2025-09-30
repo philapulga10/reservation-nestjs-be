@@ -2,7 +2,7 @@
 
 import { UsersService } from '@/users/users.service';
 
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {
@@ -11,10 +11,5 @@ export class UsersController {
   @Post('admin')
   async createAdmin(@Body() body: { email: string; password: string }) {
     return this.usersService.createAdminUser(body.email, body.password);
-  }
-
-  @Get('profile')
-  async getProfile(@Body() body: { email: string }) {
-    return this.usersService.findByEmail(body.email);
   }
 }
