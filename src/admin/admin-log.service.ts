@@ -25,9 +25,9 @@ export class AdminLogService {
     page: number = 1,
     limit: number = 10,
     action?: string,
-    adminEmail?: string,
     fromDate?: string,
-    toDate?: string
+    toDate?: string,
+    adminEmail?: string
   ) {
     return this.databaseService.getAdminLogs({
       page,

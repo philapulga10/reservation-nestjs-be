@@ -64,7 +64,6 @@ export class UsersService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Create JWT using AuthService
     const token = await this.authService.generateToken(user);
 
     await this.auditLogService.logAction({

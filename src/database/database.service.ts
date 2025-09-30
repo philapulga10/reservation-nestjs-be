@@ -490,8 +490,19 @@ export class DatabaseService implements OnModuleDestroy {
 
     const [data, total] = await Promise.all([
       db
-        .select()
+        .select({
+          id: schema.adminLogs.id,
+          adminId: schema.adminLogs.adminId,
+          action: schema.adminLogs.action,
+          metadata: schema.adminLogs.metadata,
+          createdAt: schema.adminLogs.createdAt,
+          updatedAt: schema.adminLogs.updatedAt,
+          admin: {
+            email: schema.users.email,
+          },
+        })
         .from(schema.adminLogs)
+        .leftJoin(schema.users, eq(schema.adminLogs.adminId, schema.users.id))
         .where(whereClause)
         .orderBy(desc(schema.adminLogs.createdAt))
         .limit(limit)

@@ -6,7 +6,6 @@ export const rewardsRouter = router({
     .input(
       z.object({
         token: z.string(),
-        userId: z.string(),
         amount: z.number(),
         reason: z.string(),
       })
@@ -24,7 +23,7 @@ export const rewardsRouter = router({
         reason: input.reason,
       };
 
-      return ctx.rewardsService!.earnPoints(input.userId, earnPointsDto);
+      return ctx.rewardsService!.earnPoints(user.id, earnPointsDto);
     }),
 
   history: publicProcedure
