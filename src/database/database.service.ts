@@ -520,6 +520,46 @@ export class DatabaseService implements OnModuleDestroy {
     };
   }
 
+  async getUsers(params: { q?: string; page?: number; limit?: number }) {
+    const { q, page = 1, limit = 20 } = params;
+    const offset = (page - 1) * limit;
+
+    let whereClause: any = undefined;
+    if (q && q.trim()) {
+      whereClause = or(ilike(schema.users.email, `%${q}%`));
+      // if later fullName: or(ilike(email,...), ilike(fullName,...))
+    }
+
+    const [data, total] = await Promise.all([
+      this.db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          role: schema.users.role,
+          points: schema.users.points,
+        })
+        .from(schema.users)
+        .where(whereClause)
+        .orderBy(desc(schema.users.createdAt))
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ count: sql`count(*)` })
+        .from(schema.users)
+        .where(whereClause),
+    ]);
+
+    const totalNum = Number(total[0]?.count || 0);
+    return {
+      data,
+      total: totalNum,
+      page,
+      limit,
+      totalPages: Math.ceil(totalNum / limit),
+      currentPage: page,
+    };
+  }
+
   async onModuleDestroy() {
     // Pool will be closed automatically
   }

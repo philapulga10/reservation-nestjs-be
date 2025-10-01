@@ -142,4 +142,8 @@ export class UsersService {
       },
     });
   }
+
+  getUsers(params: { q?: string; page?: number; limit?: number }) {
+    return this.databaseService.getUsers(params);
+  }
 }

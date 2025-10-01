@@ -22,12 +22,29 @@ export const adminRouter = router({
       }
 
       const domainStatus = filterToDomainStatus(input.statusFilter);
-      return ctx.bookingsService!.getAllBookings(
+      const result = await ctx.bookingsService!.getAllBookings(
         input.page || 1,
         input.limit || 10,
         input.searchKeyword,
         { status: domainStatus }
       );
+
+      const hasFilters =
+        input.searchKeyword ||
+        (input.statusFilter && input.statusFilter !== 'all');
+      await ctx.adminLogService!.logAction({
+        adminId: user.id,
+        action: hasFilters ? 'FILTER_BOOKING' : 'ADMIN_VIEW_BOOKINGS',
+        metadata: {
+          page: input.page,
+          limit: input.limit,
+          searchKeyword: input.searchKeyword,
+          statusFilter: input.statusFilter,
+          resultCount: result.data.length,
+        },
+      });
+
+      return result;
     }),
 
   bookingStats: publicProcedure
@@ -152,5 +169,26 @@ export const adminRouter = router({
       });
 
       return { success: true, isCancelled: updatedBooking.isCancelled };
+    }),
+
+  usersList: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        q: z.string().optional(),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const payload = await ctx.authService!.verifyToken(input.token);
+      const me = await ctx.usersService!.findById(payload.userId);
+      if (!me || me.role !== 'ADMIN') throw new Error('Admin access required');
+
+      return ctx.usersService!.getUsers({
+        q: input.q,
+        page: input.page ?? 1,
+        limit: input.limit ?? 20,
+      });
     }),
 });
