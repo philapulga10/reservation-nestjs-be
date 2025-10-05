@@ -1,12 +1,14 @@
-export const ADMIN_ACTIONS = {
-  VIEW_BOOKING_DETAIL: 'VIEW_BOOKING_DETAIL',
-  CANCEL_BOOKING: 'CANCEL_BOOKING',
-  FILTER_BOOKING: 'FILTER_BOOKING',
-  SEARCH_BOOKING: 'SEARCH_BOOKING',
-  TOGGLE_BOOKING_STATUS: 'TOGGLE_BOOKING_STATUS',
-  UPDATE_BOOKING: 'UPDATE_BOOKING',
-  LOGIN_SUCCESS: 'LOGIN_SUCCESS',
-  ADMIN_VIEW_BOOKINGS: 'ADMIN_VIEW_BOOKINGS',
-} as const;
+// Re-export from contracts package for backward compatibility
+export {
+  AdminActions,
+  ADMIN_ACTIONS,
+  ADMIN_ACTIONS_ARRAY,
+  TAdminAction,
+  parseAdminAction,
+} from '@mini-pn/contracts';
 
-export type AdminAction = (typeof ADMIN_ACTIONS)[keyof typeof ADMIN_ACTIONS];
+// Keep the old export for backward compatibility
+export {
+  ADMIN_ACTIONS as ADMIN_ACTIONS_OLD,
+  TAdminAction as AdminAction,
+} from '@mini-pn/contracts';

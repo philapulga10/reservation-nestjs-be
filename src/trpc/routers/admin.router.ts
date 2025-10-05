@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { publicProcedure, router } from '../trpc.core';
-import { BookingStatusFilter, filterToDomainStatus } from '@mini-pn/contracts';
+import {
+  BookingStatusFilter,
+  filterToDomainStatus,
+  AdminActions,
+} from '@mini-pn/contracts';
 
 export const adminRouter = router({
   bookings: publicProcedure
@@ -77,12 +81,25 @@ export const adminRouter = router({
         throw new Error('Admin access required');
       }
 
-      return ctx.rewardsService!.adjustPoints(
+      const result = await ctx.rewardsService!.adjustPoints(
         input.userId,
         input.delta,
         input.reason,
         user.id
       );
+
+      await ctx.adminLogService!.logAction({
+        adminId: user.id,
+        action: AdminActions.enum.ADJUST_POINTS,
+        metadata: {
+          targetUserId: input.userId,
+          delta: input.delta,
+          reason: input.reason,
+          newBalance: result.balanceAfter,
+        },
+      });
+
+      return result;
     }),
 
   logs: publicProcedure
@@ -105,7 +122,7 @@ export const adminRouter = router({
         throw new Error('Admin access required');
       }
 
-      return ctx.adminLogService!.getAdminLogs(
+      const result = await ctx.adminLogService!.getAdminLogs(
         parseInt(input.page || '1'),
         parseInt(input.limit || '20'),
         input.action,
@@ -113,6 +130,24 @@ export const adminRouter = router({
         input.toDate,
         input.adminEmail
       );
+
+      await ctx.adminLogService!.logAction({
+        adminId: user.id,
+        action: AdminActions.enum.ADMIN_VIEW_LOGS,
+        metadata: {
+          page: input.page,
+          limit: input.limit,
+          filters: {
+            action: input.action,
+            fromDate: input.fromDate,
+            toDate: input.toDate,
+            adminEmail: input.adminEmail,
+          },
+          resultCount: result.data?.length || 0,
+        },
+      });
+
+      return result;
     }),
 
   rewardTransactions: publicProcedure
@@ -132,11 +167,24 @@ export const adminRouter = router({
         throw new Error('Admin access required');
       }
 
-      return ctx.rewardsService!.getAllRewards(
+      const result = await ctx.rewardsService!.getAllRewards(
         input.page || 1,
         input.limit || 10,
         input.search
       );
+
+      await ctx.adminLogService!.logAction({
+        adminId: user.id,
+        action: AdminActions.enum.ADMIN_VIEW_REWARD_TRANSACTIONS,
+        metadata: {
+          page: input.page,
+          limit: input.limit,
+          search: input.search,
+          resultCount: result.data?.length || 0,
+        },
+      });
+
+      return result;
     }),
 
   toggleBookingStatus: publicProcedure

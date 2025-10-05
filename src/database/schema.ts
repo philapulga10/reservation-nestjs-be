@@ -23,9 +23,13 @@ export const users = pgTable('users', {
   password: text('password').notNull(),
   role: roleEnum('role').notNull().default('USER'),
   points: integer('points').notNull().default(0),
-  lastLogoutAt: timestamp('last_logout_at'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  lastLogoutAt: timestamp('last_logout_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const hotels = pgTable('hotels', {
@@ -37,8 +41,12 @@ export const hotels = pgTable('hotels', {
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
   rating: numeric('rating', { precision: 3, scale: 1 }).notNull(),
   image: text('image').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const bookings = pgTable('bookings', {
@@ -57,8 +65,12 @@ export const bookings = pgTable('bookings', {
   numRooms: integer('num_rooms').notNull(),
   totalPrice: numeric('total_price', { precision: 10, scale: 2 }).notNull(),
   isCancelled: boolean('is_cancelled').notNull().default(false),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const auditLogs = pgTable('audit_logs', {
@@ -71,8 +83,12 @@ export const auditLogs = pgTable('audit_logs', {
   objectId: text('object_id').notNull(),
   before: json('before'),
   after: json('after'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const adminLogs = pgTable('admin_logs', {
@@ -82,8 +98,12 @@ export const adminLogs = pgTable('admin_logs', {
   adminId: text('admin_id').references(() => users.id),
   action: text('action').notNull(),
   metadata: json('metadata').notNull().default('{}'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const rewardTxType = pgEnum('reward_tx_type', [
@@ -103,7 +123,7 @@ export const rewardHistory = pgTable(
       .references(() => users.id),
     actorId: text('actor_id').references(() => users.id),
     type: rewardTxType('type').notNull().default('EARN'),
-    date: timestamp('date').notNull().defaultNow(),
+    date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
     points: integer('points').notNull(),
     balanceAfter: integer('balance_after').notNull(),
     reason: text('reason').notNull(),
