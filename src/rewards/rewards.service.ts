@@ -90,4 +90,18 @@ export class RewardsService {
       search,
     });
   }
+
+  async getRewardStats(
+    topN = 5,
+    recentN = 5,
+    fromDate?: string,
+    toDate?: string
+  ) {
+    return this.databaseService.getRewardStats({
+      topN,
+      recentN,
+      fromDate,
+      toDate,
+    });
+  }
 }

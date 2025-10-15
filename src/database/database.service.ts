@@ -1,9 +1,10 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { eq, ilike, or, and, gte, lte, desc, sql } from 'drizzle-orm';
+import { eq, ilike, or, and, gte, lte, desc, sql, gt } from 'drizzle-orm';
 
 import { db } from '@/database/connection';
 import * as schema from '@/database/schema';
 import { domainStatusToIsCancelled, TBookingStatus } from '@mini-pn/contracts';
+import { toRange } from '@/utils/date-range.util';
 
 // ✅ Custom types to handle decimal fields
 export interface CreateBookingData {
@@ -557,6 +558,129 @@ export class DatabaseService implements OnModuleDestroy {
       limit,
       totalPages: Math.ceil(totalNum / limit),
       currentPage: page,
+    };
+  }
+
+  /**
+   * Summary of data for Reward Dashboard
+   *
+   * Supports optional date range filter (fromDate / toDate):
+   * - If provided, stats (EARN, REDEEM, ADJUST, net) are calculated only within that range.
+   * - If omitted, stats include all-time data.
+   *
+   * Returned fields:
+   * - totalIssued: total points added (EARN + positive ADJUST) within range.
+   * - totalRedeemed: total points deducted (REDEEM + negative ADJUST) within range.
+   * - netPoints: totalEarn + totalAdjust - totalRedeem (net issuance within range).
+   * - usersWithBalance: number of users whose current balance (schema.users.points) > 0.
+   *                     (This metric is always "current", not affected by date range.)
+   * - topUsers: top N users by current balance (not range-filtered).
+   * - recentTx: N most recent transactions, filtered by date range if provided.
+   * - appliedFrom / appliedTo: reflect the date range applied for FE display.
+   */
+
+  async getRewardStats(params: {
+    topN?: number;
+    recentN?: number;
+    fromDate?: string;
+    toDate?: string;
+  }) {
+    const { topN = 5, recentN = 5, fromDate, toDate } = params;
+
+    // whereClause for rewardHistory (by date range)
+    const dateWhere = toRange(schema.rewardHistory.date, fromDate, toDate);
+
+    // Total EARN in the interval
+    const earnRes = await this.db
+      .select({ sum: sql`COALESCE(sum(${schema.rewardHistory.points}), 0)` })
+      .from(schema.rewardHistory)
+      .where(
+        and(
+          eq(schema.rewardHistory.type, 'EARN'),
+          ...(dateWhere ? [dateWhere] : [])
+        )
+      );
+
+    const totalEarn = Number(earnRes[0]?.sum ?? 0);
+
+    // Total REDEEM in the interval
+    const redeemRes = await this.db
+      .select({ sum: sql`COALESCE(sum(${schema.rewardHistory.points}), 0)` })
+      .from(schema.rewardHistory)
+      .where(
+        and(
+          eq(schema.rewardHistory.type, 'REDEEM'),
+          ...(dateWhere ? [dateWhere] : [])
+        )
+      );
+
+    const totalRedeem = Number(redeemRes[0]?.sum ?? 0);
+
+    // Total ADJUST in the interval (can be positive/negative)
+    const adjustRes = await this.db
+      .select({ sum: sql`COALESCE(sum(${schema.rewardHistory.points}), 0)` })
+      .from(schema.rewardHistory)
+      .where(
+        and(
+          eq(schema.rewardHistory.type, 'ADJUST'),
+          ...(dateWhere ? [dateWhere] : [])
+        )
+      );
+
+    const totalAdjust = Number(adjustRes[0]?.sum ?? 0);
+
+    const totalIssued = totalEarn + Math.max(0, totalAdjust);
+    const totalRedeemed = totalRedeem + Math.max(0, -totalAdjust);
+    const netPoints = totalEarn + totalAdjust - totalRedeem;
+
+    // Users with current balance (not range-filtered)
+    const usersWithBalanceRes = await this.db
+      .select({ count: sql`count(*)` })
+      .from(schema.users)
+      .where(gt(schema.users.points, 0));
+    const usersWithBalance = Number(usersWithBalanceRes[0]?.count ?? 0);
+
+    // Top users BY current points (keep as current snapshot)
+    const topUsers = await this.db
+      .select({
+        id: schema.users.id,
+        email: schema.users.email,
+        points: schema.users.points,
+      })
+      .from(schema.users)
+      .orderBy(desc(schema.users.points))
+      .limit(topN);
+
+    // Recent transactions inside range (or overall if no range)
+    const recentTx = await this.db
+      .select({
+        id: schema.rewardHistory.id,
+        date: schema.rewardHistory.date,
+        type: schema.rewardHistory.type,
+        points: schema.rewardHistory.points,
+        reason: schema.rewardHistory.reason,
+        userId: schema.rewardHistory.userId,
+        actorId: schema.rewardHistory.actorId,
+        userEmail: schema.users.email,
+      })
+      .from(schema.rewardHistory)
+      .leftJoin(schema.users, eq(schema.users.id, schema.rewardHistory.userId))
+      .where(dateWhere) // if undefined, Drizzle ignores, but to be safe:
+      .orderBy(desc(schema.rewardHistory.date))
+      .limit(recentN);
+
+    return {
+      kpis: {
+        totalIssued,
+        totalRedeemed,
+        netPoints,
+        usersWithBalance,
+        // optional: include the applied range to help FE
+        appliedFrom: fromDate ?? null,
+        appliedTo: toDate ?? null,
+      },
+      topUsers,
+      recentTx,
     };
   }
 

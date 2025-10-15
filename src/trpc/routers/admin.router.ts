@@ -239,4 +239,28 @@ export const adminRouter = router({
         limit: input.limit ?? 20,
       });
     }),
+
+  rewardStats: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        topN: z.number().int().positive().max(50).optional(),
+        recentN: z.number().int().positive().max(50).optional(),
+        fromDate: z.string().optional(), // expect 'YYYY-MM-DD' or ISO
+        toDate: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const payload = await ctx.authService!.verifyToken(input.token);
+      const me = await ctx.usersService!.findById(payload.userId);
+      if (!me || me.role !== 'ADMIN') throw new Error('Admin access required');
+
+      // optional: validate date strings more strictly here if needed
+      return ctx.rewardsService!.getRewardStats(
+        input.topN ?? 5,
+        input.recentN ?? 5,
+        input.fromDate,
+        input.toDate
+      );
+    }),
 });
