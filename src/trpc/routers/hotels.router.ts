@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { publicProcedure, router } from '../trpc.core';
+import { publicProcedure, router } from "@/trpc/trpc.core";
 
 export const hotelsRouter = router({
   list: publicProcedure
