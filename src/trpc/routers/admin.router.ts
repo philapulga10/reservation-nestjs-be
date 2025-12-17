@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure, router } from "@/trpc/trpc.core";
+import { publicProcedure, router } from '@/trpc/trpc.core';
 import {
   BookingStatusFilter,
   filterToDomainStatus,
@@ -157,6 +157,10 @@ export const adminRouter = router({
         page: z.number().int().positive().optional(),
         limit: z.number().int().positive().optional(),
         search: z.string().optional(),
+        type: z.enum(['EARN', 'REDEEM', 'ADJUST']).optional(),
+        userEmail: z.string().optional(),
+        fromDate: z.string().optional(),
+        toDate: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -167,24 +171,15 @@ export const adminRouter = router({
         throw new Error('Admin access required');
       }
 
-      const result = await ctx.rewardsService!.getAllRewards(
-        input.page || 1,
-        input.limit || 10,
-        input.search
-      );
-
-      await ctx.adminLogService!.logAction({
-        adminId: user.id,
-        action: AdminActions.enum.ADMIN_VIEW_REWARD_TRANSACTIONS,
-        metadata: {
-          page: input.page,
-          limit: input.limit,
-          search: input.search,
-          resultCount: result.data?.length || 0,
-        },
+      return ctx.rewardsService!.getAllRewards({
+        page: input.page ?? 1,
+        limit: input.limit ?? 10,
+        search: input.search,
+        type: input.type,
+        userEmail: input.userEmail,
+        fromDate: input.fromDate,
+        toDate: input.toDate,
       });
-
-      return result;
     }),
 
   toggleBookingStatus: publicProcedure

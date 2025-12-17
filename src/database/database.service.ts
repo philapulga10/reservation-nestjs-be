@@ -25,6 +25,22 @@ export interface UpdateBookingData {
   updatedAt?: Date;
 }
 
+function buildDateRange(fromDate?: string, toDate?: string) {
+  const clauses: any[] = [];
+  if (fromDate) {
+    const from = new Date(fromDate);
+    from.setHours(0, 0, 0, 0);
+    clauses.push(gte(schema.rewardHistory.date, from));
+  }
+  if (toDate) {
+    const to = new Date(toDate);
+    to.setHours(23, 59, 59, 999);
+    clauses.push(lte(schema.rewardHistory.date, to));
+  }
+  if (clauses.length === 0) return undefined;
+  return and(...clauses);
+}
+
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {
   get db() {
@@ -333,31 +349,91 @@ export class DatabaseService implements OnModuleDestroy {
   async getAllRewardHistory(params: {
     page?: number;
     limit?: number;
-    search?: string;
+    search?: string; // reason
+    type?: 'EARN' | 'REDEEM' | 'ADJUST';
+    userEmail?: string;
+    fromDate?: string;
+    toDate?: string;
   }) {
-    const { page = 1, limit = 10, search } = params;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      type,
+      userEmail,
+      fromDate,
+      toDate,
+    } = params;
     const offset = (page - 1) * limit;
 
-    let whereClause: any = undefined;
-    if (search && search.trim()) {
-      whereClause = or(ilike(schema.rewardHistory.reason, `%${search}%`));
+    const dateWhere = buildDateRange(fromDate, toDate);
+
+    const whereClauses: any[] = [];
+
+    if (type) {
+      whereClauses.push(eq(schema.rewardHistory.type, type));
     }
 
-    const [data, total] = await Promise.all([
-      db
-        .select()
-        .from(schema.rewardHistory)
-        .where(whereClause)
-        .orderBy(desc(schema.rewardHistory.date))
-        .limit(limit)
-        .offset(offset),
-      db
-        .select({ count: sql`count(*)` })
-        .from(schema.rewardHistory)
-        .where(whereClause),
-    ]);
+    if (search && search.trim()) {
+      whereClauses.push(ilike(schema.rewardHistory.reason, `%${search}%`));
+    }
+
+    if (dateWhere) {
+      whereClauses.push(dateWhere);
+    }
+
+    // If userEmail filter provided, we need to join users and filter by users.email
+    const needUserJoin = !!(userEmail && userEmail.trim());
+
+    // Base select for data (join users to get email)
+    const dataQuery = this.db
+      .select({
+        id: schema.rewardHistory.id,
+        date: schema.rewardHistory.date,
+        type: schema.rewardHistory.type,
+        points: schema.rewardHistory.points,
+        reason: schema.rewardHistory.reason,
+        userId: schema.rewardHistory.userId,
+        actorId: schema.rewardHistory.actorId,
+        balanceAfter: schema.rewardHistory.balanceAfter,
+        userEmail: schema.users.email,
+      })
+      .from(schema.rewardHistory)
+      .leftJoin(schema.users, eq(schema.users.id, schema.rewardHistory.userId));
+
+    // apply where clauses
+    if (whereClauses.length > 0) {
+      dataQuery.where(and(...whereClauses));
+    }
+
+    // if userEmail filter, append ilike condition (users.email)
+    if (needUserJoin) {
+      dataQuery.where(ilike(schema.users.email, `%${userEmail}%`));
+    }
+
+    dataQuery
+      .orderBy(desc(schema.rewardHistory.date))
+      .limit(limit)
+      .offset(offset);
+
+    // count query: count rows matching same conditions
+    // Use same join if userEmail filter present
+    const countQuery = this.db
+      .select({ count: sql`count(*)` })
+      .from(schema.rewardHistory)
+      .leftJoin(schema.users, eq(schema.users.id, schema.rewardHistory.userId));
+
+    if (whereClauses.length > 0) {
+      countQuery.where(and(...whereClauses));
+    }
+    if (needUserJoin) {
+      countQuery.where(ilike(schema.users.email, `%${userEmail}%`));
+    }
+
+    const [data, total] = await Promise.all([dataQuery, countQuery]);
 
     const totalNum = Number(total[0]?.count || 0);
+
     return {
       data,
       total: totalNum,

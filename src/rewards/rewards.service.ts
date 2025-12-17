@@ -83,12 +83,16 @@ export class RewardsService {
     });
   }
 
-  async getAllRewards(page: number = 1, limit: number = 10, search?: string) {
-    return this.databaseService.getAllRewardHistory({
-      page,
-      limit,
-      search,
-    });
+  async getAllRewards(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: 'EARN' | 'REDEEM' | 'ADJUST';
+    userEmail?: string;
+    fromDate?: string;
+    toDate?: string;
+  }) {
+    return this.databaseService.getAllRewardHistory(options);
   }
 
   async getRewardStats(
